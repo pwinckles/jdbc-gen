@@ -34,5 +34,4 @@ public interface JdbcGenDb<E, I, P extends BasePatch, C> {
     int[] delete(List<I> ids, Connection conn) throws SQLException;
 
     int deleteAll(Connection conn) throws SQLException;
-
 }

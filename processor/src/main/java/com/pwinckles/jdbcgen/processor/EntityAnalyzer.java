@@ -1,9 +1,13 @@
 package com.pwinckles.jdbcgen.processor;
 
-import com.pwinckles.jdbcgen.JdbcGenColumn;
 import com.pwinckles.jdbcgen.JdbcGen;
+import com.pwinckles.jdbcgen.JdbcGenColumn;
 import com.pwinckles.jdbcgen.JdbcGenTable;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -12,14 +16,6 @@ import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class EntityAnalyzer {
 
@@ -32,11 +28,13 @@ public class EntityAnalyzer {
     public EntitySpec analyze(TypeElement entity) {
         validateEntityType(entity);
 
-        var entitySpecBuilder = EntitySpec.builder()
-                .withTypeElement(entity);
+        var entitySpecBuilder = EntitySpec.builder().withTypeElement(entity);
 
-        entitySpecBuilder.withPackageName(processingEnv.getElementUtils()
-                .getPackageOf(entity).getQualifiedName().toString());
+        entitySpecBuilder.withPackageName(processingEnv
+                .getElementUtils()
+                .getPackageOf(entity)
+                .getQualifiedName()
+                .toString());
 
         var genAnnotation = getAndValidateGenAnnotation(entity);
 
@@ -53,14 +51,14 @@ public class EntityAnalyzer {
 
         var constructor = resolveConstructor(entity, columnFields);
         var hasCanonicalConstructor = !constructor.getParameters().isEmpty();
-        entitySpecBuilder.withConstructorElement(constructor)
-                .withCanonicalConstructor(hasCanonicalConstructor);
+        entitySpecBuilder.withConstructorElement(constructor).withCanonicalConstructor(hasCanonicalConstructor);
 
         var columnSpecs = resolveColumnSpecs(entity, columnFields, hasCanonicalConstructor);
         entitySpecBuilder.withColumns(columnSpecs);
 
         columnSpecs.stream()
-                .filter(ColumnSpec::isIdentity).findFirst()
+                .filter(ColumnSpec::isIdentity)
+                .findFirst()
                 .ifPresent(entitySpecBuilder::withIdentityColumn);
 
         return entitySpecBuilder.build();
@@ -70,7 +68,8 @@ public class EntityAnalyzer {
         if (entity.getModifiers().contains(Modifier.PRIVATE)) {
             throw new RuntimeException(entity.getQualifiedName() + " must not be private.");
         }
-        if (entity.getNestingKind() == NestingKind.MEMBER && !entity.getModifiers().contains(Modifier.STATIC)) {
+        if (entity.getNestingKind() == NestingKind.MEMBER
+                && !entity.getModifiers().contains(Modifier.STATIC)) {
             throw new RuntimeException(entity.getQualifiedName() + " must be static.");
         }
         if (entity.getModifiers().contains(Modifier.ABSTRACT)) {
@@ -101,9 +100,8 @@ public class EntityAnalyzer {
         var tableName = tableAnnotation.name();
 
         if (tableName == null || tableName.isBlank()) {
-            throw new IllegalArgumentException("@JdbcGenTable(name) on "
-                    + entity.getQualifiedName()
-                    + " cannot be blank.");
+            throw new IllegalArgumentException(
+                    "@JdbcGenTable(name) on " + entity.getQualifiedName() + " cannot be blank.");
         }
 
         return tableAnnotation;
@@ -115,12 +113,13 @@ public class EntityAnalyzer {
                     var annotations = element.getAnnotationsByType(JdbcGenColumn.class);
 
                     if (annotations.length > 1) {
-                        throw new RuntimeException(entity.getQualifiedName() + " must not have more than one @JdbcGenColumn annotation.");
+                        throw new RuntimeException(
+                                entity.getQualifiedName() + " must not have more than one @JdbcGenColumn annotation.");
                     } else if (annotations.length == 1) {
                         var name = annotations[0].name();
                         if (name == null || name.isBlank()) {
-                            throw new IllegalArgumentException("@JdbcGenColumn(name) on "
-                                    + entity.getQualifiedName() + " cannot be blank.");
+                            throw new IllegalArgumentException(
+                                    "@JdbcGenColumn(name) on " + entity.getQualifiedName() + " cannot be blank.");
                         }
                     }
 
@@ -130,11 +129,16 @@ public class EntityAnalyzer {
                 .collect(Collectors.toList());
 
         if (columnFields.isEmpty()) {
-            throw new RuntimeException(entity.getQualifiedName() + " must have at least one field annotated with @JdbcGenColumn.");
+            throw new RuntimeException(
+                    entity.getQualifiedName() + " must have at least one field annotated with @JdbcGenColumn.");
         }
 
-        if (columnFields.stream().filter(field -> field.getAnnotationsByType(JdbcGenColumn.class)[0].identity()).count() != 1) {
-            throw new RuntimeException(entity.getQualifiedName() + " must have exactly one field annotated with @JdbcGenColumn(identity = true).");
+        if (columnFields.stream()
+                        .filter(field -> field.getAnnotationsByType(JdbcGenColumn.class)[0].identity())
+                        .count()
+                != 1) {
+            throw new RuntimeException(entity.getQualifiedName()
+                    + " must have exactly one field annotated with @JdbcGenColumn(identity = true).");
         }
 
         return columnFields;
@@ -152,7 +156,9 @@ public class EntityAnalyzer {
         ExecutableElement defaultConstructor = null;
 
         for (var constructor : publicConstructors) {
-            var paramTypes = constructor.getParameters().stream().map(VariableElement::asType).collect(Collectors.toList());
+            var paramTypes = constructor.getParameters().stream()
+                    .map(VariableElement::asType)
+                    .collect(Collectors.toList());
 
             if (Objects.equals(columnTypes, paramTypes)) {
                 return constructor;
@@ -162,15 +168,15 @@ public class EntityAnalyzer {
         }
 
         if (defaultConstructor == null) {
-            throw new RuntimeException(entity.getQualifiedName() + " must hava non-private default constructor or canonical constructor.");
+            throw new RuntimeException(
+                    entity.getQualifiedName() + " must hava non-private default constructor or canonical constructor.");
         }
 
         return defaultConstructor;
     }
 
-    private List<ColumnSpec> resolveColumnSpecs(TypeElement entity,
-                                                List<VariableElement> columnFields,
-                                                boolean hasCanonicalConstructor) {
+    private List<ColumnSpec> resolveColumnSpecs(
+            TypeElement entity, List<VariableElement> columnFields, boolean hasCanonicalConstructor) {
         var columnSpecs = new ArrayList<ColumnSpec>();
 
         var candidateMethodMap = entity.getEnclosedElements().stream()
@@ -192,10 +198,10 @@ public class EntityAnalyzer {
             if (getter != null
                     && getter.getParameters().isEmpty()
                     && columnField.asType().equals(getter.getReturnType())) {
-                columnSpecBuilder.withGetterElement(getter)
-                        .withGetMethod(FieldGetMethod.GETTER);
+                columnSpecBuilder.withGetterElement(getter).withGetMethod(FieldGetMethod.GETTER);
             } else if (fieldIsPrivate) {
-                throw new RuntimeException(entity.getQualifiedName() + "." + name + " must either be non-private or have a non-private getter.");
+                throw new RuntimeException(entity.getQualifiedName() + "." + name
+                        + " must either be non-private or have a non-private getter.");
             } else {
                 columnSpecBuilder.withGetMethod(FieldGetMethod.DIRECT);
             }
@@ -216,8 +222,9 @@ public class EntityAnalyzer {
             } else if (!fieldIsPrivate && !columnField.getModifiers().contains(Modifier.FINAL)) {
                 columnSpecBuilder.withSetMethod(FieldSetMethod.DIRECT);
             } else {
-                throw new RuntimeException(entity.getQualifiedName() + "." + name + " must be writable by one of the following, non-private mechanisms: " +
-                        "canonical constructor, setter, or non-final field.");
+                throw new RuntimeException(entity.getQualifiedName() + "." + name
+                        + " must be writable by one of the following, non-private mechanisms: "
+                        + "canonical constructor, setter, or non-final field.");
             }
 
             columnSpecs.add(columnSpecBuilder.build());
@@ -227,8 +234,8 @@ public class EntityAnalyzer {
     }
 
     private String getterName(VariableElement field) {
-        return BeanUtil.getterName(field.getSimpleName().toString(),
+        return BeanUtil.getterName(
+                field.getSimpleName().toString(),
                 processingEnv.getTypeUtils().getPrimitiveType(TypeKind.BOOLEAN).equals(field.asType()));
     }
-
 }

@@ -1,17 +1,21 @@
 package com.pwinckles.jdbcgen.test;
 
 import com.pwinckles.jdbcgen.test.util.TestUtil;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.sql.Date;
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.util.UUID;
-
-public class GetterConstructorAllTypesEntityDbTest extends BaseAllTypesTest<GetterConstructorAllTypesEntity, Long, GetterConstructorAllTypesEntityDb.Patch, GetterConstructorAllTypesEntityDb.Column> {
+public class GetterConstructorAllTypesEntityDbTest
+        extends BaseAllTypesTest<
+                GetterConstructorAllTypesEntity,
+                Long,
+                GetterConstructorAllTypesEntityDb.Patch,
+                GetterConstructorAllTypesEntityDb.Column> {
 
     public GetterConstructorAllTypesEntityDbTest() {
         super(new GetterConstructorAllTypesEntityDb());
@@ -43,8 +47,7 @@ public class GetterConstructorAllTypesEntityDbTest extends BaseAllTypesTest<Gett
                 entity.getDate(),
                 entity.getTimestamp(),
                 entity.getByteArray(),
-                entity.getUuid()
-        );
+                entity.getUuid());
     }
 
     @Override
@@ -144,8 +147,7 @@ public class GetterConstructorAllTypesEntityDbTest extends BaseAllTypesTest<Gett
                 null,
                 null,
                 null,
-                null
-        );
+                null);
     }
 
     @Override
@@ -167,7 +169,8 @@ public class GetterConstructorAllTypesEntityDbTest extends BaseAllTypesTest<Gett
     }
 
     @Override
-    protected Pair<GetterConstructorAllTypesEntity, GetterConstructorAllTypesEntityDb.Patch> patchPartial(GetterConstructorAllTypesEntity entity) {
+    protected Pair<GetterConstructorAllTypesEntity, GetterConstructorAllTypesEntityDb.Patch> patchPartial(
+            GetterConstructorAllTypesEntity entity) {
         var updated = new GetterConstructorAllTypesEntity(
                 entity.getLongId(),
                 entity.getLongPrim(),
@@ -187,23 +190,24 @@ public class GetterConstructorAllTypesEntityDbTest extends BaseAllTypesTest<Gett
                 null,
                 entity.getTimestamp(),
                 entity.getByteArray(),
-                UUID.randomUUID()
-        );
+                UUID.randomUUID());
 
-        return ImmutablePair.of(updated, new GetterConstructorAllTypesEntityDb.Patch()
-                .setString(updated.getString())
-                .setUuid(updated.getUuid())
-                .setInstant(updated.getInstant())
-                .setDate(updated.getDate()));
+        return ImmutablePair.of(
+                updated,
+                new GetterConstructorAllTypesEntityDb.Patch()
+                        .setString(updated.getString())
+                        .setUuid(updated.getUuid())
+                        .setInstant(updated.getInstant())
+                        .setDate(updated.getDate()));
     }
 
     @Override
-    protected GetterConstructorAllTypesEntityDb.Patch addRequiredFields(GetterConstructorAllTypesEntity entity, GetterConstructorAllTypesEntityDb.Patch patch) {
+    protected GetterConstructorAllTypesEntityDb.Patch addRequiredFields(
+            GetterConstructorAllTypesEntity entity, GetterConstructorAllTypesEntityDb.Patch patch) {
         return patch.setBoolPrim(entity.isBoolPrim())
                 .setDoublePrim(entity.getDoublePrim())
                 .setIntPrim(entity.getIntPrim())
                 .setShortPrim(entity.getShortPrim())
                 .setLongPrim(entity.getLongPrim());
     }
-
 }

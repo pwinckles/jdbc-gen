@@ -1,17 +1,21 @@
 package com.pwinckles.jdbcgen.test;
 
 import com.pwinckles.jdbcgen.test.util.TestUtil;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.sql.Date;
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.util.UUID;
-
-public class DirectAllTypesEntityInnerDbTest extends BaseAllTypesTest<Wrapper.DirectAllTypesEntity, Long, DirectAllTypesEntityInnerDb.Patch, DirectAllTypesEntityInnerDb.Column> {
+public class DirectAllTypesEntityInnerDbTest
+        extends BaseAllTypesTest<
+                Wrapper.DirectAllTypesEntity,
+                Long,
+                DirectAllTypesEntityInnerDb.Patch,
+                DirectAllTypesEntityInnerDb.Column> {
 
     public DirectAllTypesEntityInnerDbTest() {
         super(new DirectAllTypesEntityInnerDb());
@@ -143,27 +147,30 @@ public class DirectAllTypesEntityInnerDbTest extends BaseAllTypesTest<Wrapper.Di
     }
 
     @Override
-    protected Pair<Wrapper.DirectAllTypesEntity, DirectAllTypesEntityInnerDb.Patch> patchPartial(Wrapper.DirectAllTypesEntity entity) {
+    protected Pair<Wrapper.DirectAllTypesEntity, DirectAllTypesEntityInnerDb.Patch> patchPartial(
+            Wrapper.DirectAllTypesEntity entity) {
         var updated = entity.clone();
         updated.string = RandomStringUtils.randomAlphanumeric(15);
         updated.uuid = UUID.randomUUID();
         updated.instant = TestUtil.now();
         updated.date = null;
 
-        return ImmutablePair.of(updated, new DirectAllTypesEntityInnerDb.Patch()
-                .setString(updated.string)
-                .setUuid(updated.uuid)
-                .setInstant(updated.instant)
-                .setDate(updated.date));
+        return ImmutablePair.of(
+                updated,
+                new DirectAllTypesEntityInnerDb.Patch()
+                        .setString(updated.string)
+                        .setUuid(updated.uuid)
+                        .setInstant(updated.instant)
+                        .setDate(updated.date));
     }
 
     @Override
-    protected DirectAllTypesEntityInnerDb.Patch addRequiredFields(Wrapper.DirectAllTypesEntity entity, DirectAllTypesEntityInnerDb.Patch patch) {
+    protected DirectAllTypesEntityInnerDb.Patch addRequiredFields(
+            Wrapper.DirectAllTypesEntity entity, DirectAllTypesEntityInnerDb.Patch patch) {
         return patch.setBoolPrim(entity.boolPrim)
                 .setDoublePrim(entity.doublePrim)
                 .setIntPrim(entity.intPrim)
                 .setShortPrim(entity.shortPrim)
                 .setLongPrim(entity.longPrim);
     }
-
 }

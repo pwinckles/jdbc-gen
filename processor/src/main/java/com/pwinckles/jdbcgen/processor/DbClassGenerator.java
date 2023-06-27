@@ -1,5 +1,11 @@
 package com.pwinckles.jdbcgen.processor;
 
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PROTECTED;
+import static javax.lang.model.element.Modifier.PUBLIC;
+import static javax.lang.model.element.Modifier.STATIC;
+
 import com.google.common.base.CaseFormat;
 import com.pwinckles.jdbcgen.BasePatch;
 import com.pwinckles.jdbcgen.JdbcGenDb;
@@ -11,10 +17,6 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
-
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,29 +26,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static javax.lang.model.element.Modifier.FINAL;
-import static javax.lang.model.element.Modifier.PRIVATE;
-import static javax.lang.model.element.Modifier.PROTECTED;
-import static javax.lang.model.element.Modifier.PUBLIC;
-import static javax.lang.model.element.Modifier.STATIC;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 
 public class DbClassGenerator {
 
     public JavaFile generate(EntitySpec entitySpec) {
         var entityType = TypeName.get(entitySpec.getTypeElement().asType());
-        var idType = TypeName.get(entitySpec.getIdentityColumn().getFieldElement().asType()).box();
+        var idType = TypeName.get(
+                        entitySpec.getIdentityColumn().getFieldElement().asType())
+                .box();
         var patchType = ClassName.get(entitySpec.getPackageName(), entitySpec.getDbClassName(), "Patch");
         var columnType = ClassName.get(entitySpec.getPackageName(), entitySpec.getDbClassName(), "Column");
 
         // TODO javadoc
         var builder = TypeSpec.classBuilder(entitySpec.getDbClassName())
                 .addSuperinterface(ParameterizedTypeName.get(
-                        ClassName.get(JdbcGenDb.class),
-                        entityType,
-                        idType,
-                        patchType,
-                        columnType));
+                        ClassName.get(JdbcGenDb.class), entityType, idType, patchType, columnType));
 
         if (entitySpec.getTypeElement().getModifiers().contains(PUBLIC)) {
             builder.addModifiers(PUBLIC);
@@ -89,12 +86,14 @@ public class DbClassGenerator {
     }
 
     private TypeSpec genColumnsEnum(EntitySpec entitySpec) {
-        var builder = TypeSpec.enumBuilder("Column")
-                .addModifiers(PUBLIC);
+        var builder = TypeSpec.enumBuilder("Column").addModifiers(PUBLIC);
 
-        entitySpec.getColumns().forEach(column -> builder.addEnumConstant(toEnumCase(column.getFieldName()),
-                TypeSpec.anonymousClassBuilder("$S", column.getColumnName())
-                        .build()));
+        entitySpec
+                .getColumns()
+                .forEach(column -> builder.addEnumConstant(
+                        toEnumCase(column.getFieldName()),
+                        TypeSpec.anonymousClassBuilder("$S", column.getColumnName())
+                                .build()));
 
         builder.addField(String.class, "value", PRIVATE, FINAL)
                 .addMethod(MethodSpec.constructorBuilder()
@@ -106,18 +105,18 @@ public class DbClassGenerator {
     }
 
     private TypeSpec genPatchClass(TypeName patchType, TypeName idType, EntitySpec entitySpec) {
-        var builder = TypeSpec.classBuilder("Patch")
-                .addModifiers(PUBLIC, STATIC)
-                .superclass(BasePatch.class);
+        var builder =
+                TypeSpec.classBuilder("Patch").addModifiers(PUBLIC, STATIC).superclass(BasePatch.class);
 
         var idFieldName = entitySpec.getIdentityColumn().getFieldName();
 
         builder.addMethod(MethodSpec.methodBuilder(BeanUtil.getterName(idFieldName, false))
-                        .addModifiers(PUBLIC)
-                        .returns(idType)
-                        .addStatement("return ($T) getData().get($S)",
-                                idType,
-                                entitySpec.getIdentityColumn().getColumnName())
+                .addModifiers(PUBLIC)
+                .returns(idType)
+                .addStatement(
+                        "return ($T) getData().get($S)",
+                        idType,
+                        entitySpec.getIdentityColumn().getColumnName())
                 .build());
 
         entitySpec.getColumns().forEach(column -> {
@@ -201,7 +200,8 @@ public class DbClassGenerator {
     }
 
     private MethodSpec genCount(EntitySpec entitySpec) {
-        var query = "SELECT COUNT(" + entitySpec.getIdentityColumn().getColumnName() + ") FROM " + entitySpec.getTableName();
+        var query = "SELECT COUNT(" + entitySpec.getIdentityColumn().getColumnName() + ") FROM "
+                + entitySpec.getTableName();
         return MethodSpec.methodBuilder("count")
                 .addJavadoc("{@inheritDoc}")
                 .addAnnotation(Override.class)
@@ -259,7 +259,8 @@ public class DbClassGenerator {
                 .addStatement("var data = entity.getData()")
                 .addStatement("var keys = new ArrayList<>(data.keySet())")
                 .addCode("\n")
-                .addStatement("var queryBuilder = new StringBuilder($S)", "INSERT INTO " +entitySpec.getTableName() + "(")
+                .addStatement(
+                        "var queryBuilder = new StringBuilder($S)", "INSERT INTO " + entitySpec.getTableName() + "(")
                 .addCode("\n")
                 .beginControlFlow("for (var it = keys.iterator(); it.hasNext();)")
                 .addStatement("queryBuilder.append(it.next())")
@@ -277,7 +278,9 @@ public class DbClassGenerator {
                 .addCode("\n")
                 .addStatement("$T stmt", PreparedStatement.class)
                 .beginControlFlow("if (generatedId)")
-                .addStatement("stmt = conn.prepareStatement(queryBuilder.toString(), $T.RETURN_GENERATED_KEYS)", Statement.class)
+                .addStatement(
+                        "stmt = conn.prepareStatement(queryBuilder.toString(), $T.RETURN_GENERATED_KEYS)",
+                        Statement.class)
                 .nextControlFlow("else")
                 .addStatement("stmt = conn.prepareStatement(queryBuilder.toString())")
                 .endControlFlow()
@@ -318,8 +321,10 @@ public class DbClassGenerator {
 
         if (entitySpec.getIdentityColumn().isPrimitive()) {
             builder.addStatement("return insertWithSpecifiedId(entities, conn)");
-        } else{
-            builder.beginControlFlow("if (!entities.isEmpty() && entities.get(0).$L == null)", fieldAccess(entitySpec.getIdentityColumn()))
+        } else {
+            builder.beginControlFlow(
+                            "if (!entities.isEmpty() && entities.get(0).$L == null)",
+                            fieldAccess(entitySpec.getIdentityColumn()))
                     .addStatement("return insertWithGeneratedId(entities, conn)")
                     .endControlFlow()
                     .addStatement("return insertWithSpecifiedId(entities, conn)");
@@ -370,7 +375,9 @@ public class DbClassGenerator {
                 .endControlFlow()
                 .endControlFlow()
                 .addCode("\n")
-                .addStatement("queryBuilder.append(\" WHERE $L = ?\")", entitySpec.getIdentityColumn().getColumnName())
+                .addStatement(
+                        "queryBuilder.append(\" WHERE $L = ?\")",
+                        entitySpec.getIdentityColumn().getColumnName())
                 .addCode("\n")
                 .beginControlFlow("try (var stmt = conn.prepareStatement(queryBuilder.toString()))")
                 .beginControlFlow("for (int i = 0; i < keys.size(); i++)")
@@ -458,7 +465,10 @@ public class DbClassGenerator {
                 .addParameter(entityType, "entity")
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
-                .beginControlFlow("try (var stmt = conn.prepareStatement($S, $T.RETURN_GENERATED_KEYS))", buildInsertQueryWithoutId(entitySpec), Statement.class)
+                .beginControlFlow(
+                        "try (var stmt = conn.prepareStatement($S, $T.RETURN_GENERATED_KEYS))",
+                        buildInsertQueryWithoutId(entitySpec),
+                        Statement.class)
                 .addStatement("prepareInsert(entity, stmt)")
                 .addStatement("stmt.executeUpdate()")
                 .addStatement("var rs = stmt.getGeneratedKeys()")
@@ -494,7 +504,10 @@ public class DbClassGenerator {
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
                 .addStatement("var ids = new ArrayList<$T>()", idType)
-                .beginControlFlow("try (var stmt = conn.prepareStatement($S, $T.RETURN_GENERATED_KEYS))", buildInsertQueryWithoutId(entitySpec), Statement.class)
+                .beginControlFlow(
+                        "try (var stmt = conn.prepareStatement($S, $T.RETURN_GENERATED_KEYS))",
+                        buildInsertQueryWithoutId(entitySpec),
+                        Statement.class)
                 .beginControlFlow("for (var entity : entities)")
                 .addStatement("prepareInsert(entity, stmt)")
                 .addStatement("stmt.addBatch()")
@@ -523,7 +536,10 @@ public class DbClassGenerator {
                 .endControlFlow()
                 .addStatement("stmt.executeBatch()")
                 .endControlFlow()
-                .addStatement("return entities.stream().map(entity -> entity.$L).collect($T.toList())", fieldAccess(entitySpec.getIdentityColumn()), Collectors.class)
+                .addStatement(
+                        "return entities.stream().map(entity -> entity.$L).collect($T.toList())",
+                        fieldAccess(entitySpec.getIdentityColumn()),
+                        Collectors.class)
                 .build();
     }
 
@@ -540,10 +556,11 @@ public class DbClassGenerator {
             var stmtBuilder = new StringBuilder("return new $T(");
             args.add(entityType);
 
-            for (var it = entitySpec.getColumns().iterator(); it.hasNext();) {
+            for (var it = entitySpec.getColumns().iterator(); it.hasNext(); ) {
                 var column = it.next();
                 if (column.isPrimitive()) {
-                    stmtBuilder.append(resultSetPrimitiveGet(column.getFieldElement().asType()));
+                    stmtBuilder.append(
+                            resultSetPrimitiveGet(column.getFieldElement().asType()));
                 } else {
                     stmtBuilder.append("getNullableValue(rs, i++, $T.class)");
                     args.add(TypeName.get(column.getFieldElement().asType()));
@@ -555,7 +572,7 @@ public class DbClassGenerator {
             }
 
             stmtBuilder.append(")");
-            builder.addStatement(stmtBuilder.toString(), args.toArray(new Object[]{}));
+            builder.addStatement(stmtBuilder.toString(), args.toArray(new Object[] {}));
         } else {
             builder.addStatement("var entity = new $T()", entityType);
 
@@ -608,11 +625,9 @@ public class DbClassGenerator {
                     .endControlFlow();
         }
 
-        entitySpec.getColumns().stream()
-                .filter(column -> !column.isIdentity())
-                .forEach(column -> {
-                    builder.addStatement("stmt.setObject(i++, entity.$L)", fieldAccess(column));
-                });
+        entitySpec.getColumns().stream().filter(column -> !column.isIdentity()).forEach(column -> {
+            builder.addStatement("stmt.setObject(i++, entity.$L)", fieldAccess(column));
+        });
 
         return builder.build();
     }
@@ -626,11 +641,9 @@ public class DbClassGenerator {
                 .addException(SQLException.class)
                 .addStatement("int i = 1");
 
-        entitySpec.getColumns().stream()
-                .filter(column -> !column.isIdentity())
-                .forEach(column -> {
-                    builder.addStatement("stmt.setObject(i++, entity.$L)", fieldAccess(column));
-                });
+        entitySpec.getColumns().stream().filter(column -> !column.isIdentity()).forEach(column -> {
+            builder.addStatement("stmt.setObject(i++, entity.$L)", fieldAccess(column));
+        });
 
         builder.addStatement("stmt.setObject(i++, entity.$L)", fieldAccess(entitySpec.getIdentityColumn()));
 
@@ -656,9 +669,7 @@ public class DbClassGenerator {
     }
 
     private String columnNames(EntitySpec entitySpec) {
-        return entitySpec.getColumns().stream()
-                .map(ColumnSpec::getColumnName)
-                .collect(Collectors.joining(", "));
+        return entitySpec.getColumns().stream().map(ColumnSpec::getColumnName).collect(Collectors.joining(", "));
     }
 
     private String columnNamesWithoutId(EntitySpec entitySpec) {
@@ -705,7 +716,8 @@ public class DbClassGenerator {
                 if (component.getKind() == TypeKind.BYTE) {
                     return "rs.getBytes(i++)";
                 }
-                throw new RuntimeException("Byte arrays are the only array type that is currently supported. Found type: " + component);
+                throw new RuntimeException(
+                        "Byte arrays are the only array type that is currently supported. Found type: " + component);
             default:
                 throw new RuntimeException("Unmapped type: " + type);
         }
@@ -721,18 +733,19 @@ public class DbClassGenerator {
 
     private String buildInsertQueryWithId(EntitySpec entitySpec) {
         var columnNames = columnNames(entitySpec);
-        return "INSERT INTO " + entitySpec.getTableName() + " (" + columnNames + ") VALUES (" + genPlaceholders(entitySpec.getColumns().size()) + ")";
+        return "INSERT INTO " + entitySpec.getTableName() + " (" + columnNames + ") VALUES ("
+                + genPlaceholders(entitySpec.getColumns().size()) + ")";
     }
 
     private String buildInsertQueryWithoutId(EntitySpec entitySpec) {
         var columnNames = columnNamesWithoutId(entitySpec);
-        return "INSERT INTO " + entitySpec.getTableName() + " (" + columnNames + ") VALUES (" + genPlaceholders(entitySpec.getColumns().size() - 1) + ")";
+        return "INSERT INTO " + entitySpec.getTableName() + " (" + columnNames + ") VALUES ("
+                + genPlaceholders(entitySpec.getColumns().size() - 1) + ")";
     }
 
     private String buildUpdateQuery(EntitySpec entitySpec) {
-        var queryBuilder = new StringBuilder("UPDATE ")
-                .append(entitySpec.getTableName())
-                .append(" SET ");
+        var queryBuilder =
+                new StringBuilder("UPDATE ").append(entitySpec.getTableName()).append(" SET ");
 
         entitySpec.getColumns().stream()
                 .filter(column -> !column.isIdentity())
@@ -740,7 +753,8 @@ public class DbClassGenerator {
 
         queryBuilder.delete(queryBuilder.length() - 2, queryBuilder.length());
 
-        queryBuilder.append(" WHERE ")
+        queryBuilder
+                .append(" WHERE ")
                 .append(entitySpec.getIdentityColumn().getColumnName())
                 .append(" = ?");
 
@@ -748,7 +762,7 @@ public class DbClassGenerator {
     }
 
     private String buildDeleteQuery(EntitySpec entitySpec) {
-        return "DELETE FROM " + entitySpec.getTableName() + " WHERE " + entitySpec.getIdentityColumn().getColumnName() + " = ?";
+        return "DELETE FROM " + entitySpec.getTableName() + " WHERE "
+                + entitySpec.getIdentityColumn().getColumnName() + " = ?";
     }
-
 }

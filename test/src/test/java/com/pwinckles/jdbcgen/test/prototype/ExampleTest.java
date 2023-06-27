@@ -2,12 +2,6 @@ package com.pwinckles.jdbcgen.test.prototype;
 
 import com.pwinckles.jdbcgen.OrderDirection;
 import com.pwinckles.jdbcgen.test.util.TestUtil;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -16,6 +10,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class ExampleTest {
 
@@ -24,8 +23,7 @@ public class ExampleTest {
     private static Stream<Arguments> dbs() throws SQLException {
         return Stream.of(
                 Arguments.of(DriverManager.getConnection("jdbc:hsqldb:mem:testdb;shutdown=true", "SA", "")),
-                Arguments.of(DriverManager.getConnection("jdbc:h2:mem:testdb", "SA", ""))
-        );
+                Arguments.of(DriverManager.getConnection("jdbc:h2:mem:testdb", "SA", "")));
     }
 
     @ParameterizedTest
@@ -67,8 +65,7 @@ public class ExampleTest {
                     example().setId(22L),
                     example().setId(33L),
                     example().setId(44L),
-                    example().setId(55L)
-            );
+                    example().setId(55L));
 
             exampleDb.insert(originals, conn);
             assertEntities(originals, conn);
@@ -91,12 +88,7 @@ public class ExampleTest {
         try (conn) {
             createTable(conn);
 
-            var originals = List.of(
-                    example(),
-                    example(),
-                    example(),
-                    example()
-            );
+            var originals = List.of(example(), example(), example(), example());
 
             var ids = exampleDb.insert(originals, conn);
 
@@ -109,8 +101,7 @@ public class ExampleTest {
 
             var updates = List.of(
                     originals.get(1).setName("updated"),
-                    originals.get(3).setName("updated too").setTimestamp(TestUtil.now())
-            );
+                    originals.get(3).setName("updated too").setTimestamp(TestUtil.now()));
             exampleDb.update(updates, conn);
             assertAllEntities(originals, conn);
 
@@ -135,8 +126,7 @@ public class ExampleTest {
                     new Example().setId(1L).setName("d"),
                     new Example().setId(2L).setName("c"),
                     new Example().setId(3L).setName("b"),
-                    new Example().setId(4L).setName("a")
-            ));
+                    new Example().setId(4L).setName("a")));
 
             exampleDb.insert(originals, conn);
 
@@ -167,13 +157,15 @@ public class ExampleTest {
     }
 
     private void assertEntities(List<Example> expected, Connection conn) {
-        var actual = expected.stream().map(e -> {
-            try {
-                return exampleDb.select(e.getId(), conn);
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        }).collect(Collectors.toList());
+        var actual = expected.stream()
+                .map(e -> {
+                    try {
+                        return exampleDb.select(e.getId(), conn);
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                })
+                .collect(Collectors.toList());
         assertEntities(expected, actual);
     }
 
@@ -182,9 +174,7 @@ public class ExampleTest {
     }
 
     private void assertEntities(List<Example> expected, List<Example> actual) {
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
+        Assertions.assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
     }
 
     private void assertDoesNotExist(long id, Connection conn) throws SQLException {
@@ -192,9 +182,7 @@ public class ExampleTest {
     }
 
     private Example example() {
-        return new Example()
-                .setName(RandomStringUtils.randomAlphanumeric(10))
-                .setTimestamp(TestUtil.now());
+        return new Example().setName(RandomStringUtils.randomAlphanumeric(10)).setTimestamp(TestUtil.now());
     }
 
     private void createTable(Connection conn) throws SQLException {
@@ -202,5 +190,4 @@ public class ExampleTest {
             stmt.execute("CREATE TABLE example (id IDENTITY PRIMARY KEY, name VARCHAR(255), timestamp TIMESTAMP)");
         }
     }
-
 }

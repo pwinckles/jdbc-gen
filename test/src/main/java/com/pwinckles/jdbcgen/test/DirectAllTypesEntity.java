@@ -3,7 +3,6 @@ package com.pwinckles.jdbcgen.test;
 import com.pwinckles.jdbcgen.JdbcGen;
 import com.pwinckles.jdbcgen.JdbcGenColumn;
 import com.pwinckles.jdbcgen.JdbcGenTable;
-
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;

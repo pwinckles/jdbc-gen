@@ -6,7 +6,7 @@ import com.pwinckles.jdbcgen.JdbcGenTable;
 
 @JdbcGen
 @JdbcGenTable(name = "primitive_id")
-public class PrimitiveIdEntity implements Cloneable{
+public class PrimitiveIdEntity implements Cloneable {
 
     @JdbcGenColumn(name = "id", identity = true)
     private long id;

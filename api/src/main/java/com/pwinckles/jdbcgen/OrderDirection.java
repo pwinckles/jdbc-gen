@@ -1,7 +1,6 @@
 package com.pwinckles.jdbcgen;
 
 public enum OrderDirection {
-
     ASCENDING("ASC"),
     DESCENDING("DESC");
 

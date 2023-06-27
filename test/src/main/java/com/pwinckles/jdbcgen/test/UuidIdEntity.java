@@ -3,12 +3,11 @@ package com.pwinckles.jdbcgen.test;
 import com.pwinckles.jdbcgen.JdbcGen;
 import com.pwinckles.jdbcgen.JdbcGenColumn;
 import com.pwinckles.jdbcgen.JdbcGenTable;
-
 import java.util.UUID;
 
 @JdbcGen
 @JdbcGenTable(name = "uuid_id")
-public class UuidIdEntity implements Cloneable{
+public class UuidIdEntity implements Cloneable {
 
     @JdbcGenColumn(name = "id", identity = true)
     private UUID id;

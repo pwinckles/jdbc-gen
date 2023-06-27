@@ -3,7 +3,6 @@ package com.pwinckles.jdbcgen.test.prototype;
 import com.pwinckles.jdbcgen.BasePatch;
 import com.pwinckles.jdbcgen.JdbcGenDb;
 import com.pwinckles.jdbcgen.OrderDirection;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -50,7 +49,6 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
             put("timestamp", timestamp);
             return this;
         }
-
     }
 
     /**
@@ -93,7 +91,8 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         var results = new ArrayList<Example>();
 
         try (var stmt = conn.createStatement()) {
-            var rs = stmt.executeQuery("SELECT id, name, timestamp FROM example ORDER BY " + orderBy.value + " " + direction.getValue());
+            var rs = stmt.executeQuery(
+                    "SELECT id, name, timestamp FROM example ORDER BY " + orderBy.value + " " + direction.getValue());
             while (rs.next()) {
                 results.add(fromResultSet(rs));
             }
@@ -128,8 +127,8 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
     }
 
     private Long insertWithGeneratedId(Example entity, Connection conn) throws SQLException {
-        try (var stmt = conn.prepareStatement("INSERT INTO example (name, timestamp) VALUES (?, ?)",
-                Statement.RETURN_GENERATED_KEYS)) {
+        try (var stmt = conn.prepareStatement(
+                "INSERT INTO example (name, timestamp) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
             prepareInsert(entity, stmt);
             stmt.executeUpdate();
             var rs = stmt.getGeneratedKeys();
@@ -164,7 +163,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
 
         var queryBuilder = new StringBuilder("INSERT INTO example (");
 
-        for (var it = keys.iterator(); it.hasNext();) {
+        for (var it = keys.iterator(); it.hasNext(); ) {
             queryBuilder.append(it.next());
             if (it.hasNext()) {
                 queryBuilder.append(", ");
@@ -222,8 +221,8 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
     private List<Long> insertWithGeneratedId(List<Example> entities, Connection conn) throws SQLException {
         var ids = new ArrayList<Long>();
 
-        try (var stmt = conn.prepareStatement("INSERT INTO example (name, timestamp) VALUES (?, ?)",
-                Statement.RETURN_GENERATED_KEYS)) {
+        try (var stmt = conn.prepareStatement(
+                "INSERT INTO example (name, timestamp) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
             for (var entity : entities) {
                 prepareInsert(entity, stmt);
                 stmt.addBatch();
@@ -278,7 +277,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
 
         var queryBuilder = new StringBuilder("UPDATE example SET ");
 
-        for (var it = keys.iterator(); it.hasNext();) {
+        for (var it = keys.iterator(); it.hasNext(); ) {
             queryBuilder.append(it.next()).append(" = ?");
             if (it.hasNext()) {
                 queryBuilder.append(", ");
@@ -380,5 +379,4 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         stmt.setObject(i++, entity.getTimestamp());
         stmt.setObject(i++, entity.getId());
     }
-
 }

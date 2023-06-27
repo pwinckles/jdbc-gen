@@ -1,9 +1,9 @@
 package com.pwinckles.jdbcgen.processor;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
 import java.util.List;
 import java.util.Objects;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 
 public class EntitySpec {
 
@@ -20,14 +20,15 @@ public class EntitySpec {
         return new Builder();
     }
 
-    private EntitySpec(String packageName,
-                       String dbClassName,
-                      String tableName,
-                      TypeElement typeElement,
-                      ExecutableElement constructorElement,
-                      ColumnSpec identityColumn,
-                      List<ColumnSpec> columns,
-                      boolean canonicalConstructor) {
+    private EntitySpec(
+            String packageName,
+            String dbClassName,
+            String tableName,
+            TypeElement typeElement,
+            ExecutableElement constructorElement,
+            ColumnSpec identityColumn,
+            List<ColumnSpec> columns,
+            boolean canonicalConstructor) {
         this.packageName = Objects.requireNonNull(packageName, "packageName cannot be null");
         this.dbClassName = Objects.requireNonNull(dbClassName, "dbClassName cannot be null");
         this.tableName = Objects.requireNonNull(tableName, "tableName cannot be null");
@@ -121,7 +122,8 @@ public class EntitySpec {
         }
 
         public EntitySpec build() {
-            return new EntitySpec(packageName,
+            return new EntitySpec(
+                    packageName,
                     dbClassName,
                     tableName,
                     typeElement,

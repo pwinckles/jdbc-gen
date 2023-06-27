@@ -1,8 +1,8 @@
 package com.pwinckles.jdbcgen.processor;
 
+import java.util.Objects;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
-import java.util.Objects;
 
 public class ColumnSpec {
 
@@ -18,13 +18,14 @@ public class ColumnSpec {
         return new Builder();
     }
 
-    private ColumnSpec(String columnName,
-                      boolean identity,
-                      VariableElement fieldElement,
-                      ExecutableElement getterElement,
-                      ExecutableElement setterElement,
-                      FieldGetMethod getMethod,
-                      FieldSetMethod setMethod) {
+    private ColumnSpec(
+            String columnName,
+            boolean identity,
+            VariableElement fieldElement,
+            ExecutableElement getterElement,
+            ExecutableElement setterElement,
+            FieldGetMethod getMethod,
+            FieldSetMethod setMethod) {
         this.columnName = Objects.requireNonNull(columnName, "columnName cannot be null");
         this.identity = identity;
         this.fieldElement = Objects.requireNonNull(fieldElement, "fieldElement cannot be null");
@@ -136,13 +137,8 @@ public class ColumnSpec {
         }
 
         public ColumnSpec build() {
-            return new ColumnSpec(columnName,
-                    identity,
-                    fieldElement,
-                    getterElement,
-                    setterElement,
-                    getMethod,
-                    setMethod);
+            return new ColumnSpec(
+                    columnName, identity, fieldElement, getterElement, setterElement, getMethod, setMethod);
         }
     }
 }

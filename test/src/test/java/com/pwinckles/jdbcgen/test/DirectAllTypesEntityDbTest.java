@@ -1,17 +1,18 @@
 package com.pwinckles.jdbcgen.test;
 
 import com.pwinckles.jdbcgen.test.util.TestUtil;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.sql.Date;
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.util.UUID;
-
-public class DirectAllTypesEntityDbTest extends BaseAllTypesTest<DirectAllTypesEntity, Long, DirectAllTypesEntityDb.Patch, DirectAllTypesEntityDb.Column> {
+public class DirectAllTypesEntityDbTest
+        extends BaseAllTypesTest<
+                DirectAllTypesEntity, Long, DirectAllTypesEntityDb.Patch, DirectAllTypesEntityDb.Column> {
 
     public DirectAllTypesEntityDbTest() {
         super(new DirectAllTypesEntityDb());
@@ -150,20 +151,22 @@ public class DirectAllTypesEntityDbTest extends BaseAllTypesTest<DirectAllTypesE
         updated.instant = TestUtil.now();
         updated.date = null;
 
-        return ImmutablePair.of(updated, new DirectAllTypesEntityDb.Patch()
-                .setString(updated.string)
-                .setUuid(updated.uuid)
-                .setInstant(updated.instant)
-                .setDate(updated.date));
+        return ImmutablePair.of(
+                updated,
+                new DirectAllTypesEntityDb.Patch()
+                        .setString(updated.string)
+                        .setUuid(updated.uuid)
+                        .setInstant(updated.instant)
+                        .setDate(updated.date));
     }
 
     @Override
-    protected DirectAllTypesEntityDb.Patch addRequiredFields(DirectAllTypesEntity entity, DirectAllTypesEntityDb.Patch patch) {
+    protected DirectAllTypesEntityDb.Patch addRequiredFields(
+            DirectAllTypesEntity entity, DirectAllTypesEntityDb.Patch patch) {
         return patch.setBoolPrim(entity.boolPrim)
                 .setDoublePrim(entity.doublePrim)
                 .setIntPrim(entity.intPrim)
                 .setShortPrim(entity.shortPrim)
                 .setLongPrim(entity.longPrim);
     }
-
 }

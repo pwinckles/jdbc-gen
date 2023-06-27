@@ -37,10 +37,6 @@ public class Example {
 
     @Override
     public String toString() {
-        return "Example{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", timestamp=" + timestamp +
-                '}';
+        return "Example{" + "id=" + id + ", name='" + name + '\'' + ", timestamp=" + timestamp + '}';
     }
 }

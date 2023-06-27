@@ -25,5 +25,4 @@ public final class TestUtil {
     public static OffsetDateTime nowOffsetDateTime() {
         return OffsetDateTime.now().truncatedTo(ChronoUnit.MICROS);
     }
-
 }

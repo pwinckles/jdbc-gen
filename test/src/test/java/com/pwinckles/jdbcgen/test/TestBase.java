@@ -2,12 +2,6 @@ package com.pwinckles.jdbcgen.test;
 
 import com.pwinckles.jdbcgen.BasePatch;
 import com.pwinckles.jdbcgen.JdbcGenDb;
-import org.apache.commons.lang3.tuple.Pair;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -16,14 +10,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.tuple.Pair;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public abstract class TestBase<E, I, P extends BasePatch, C> {
 
     protected static Stream<Arguments> dbs() throws SQLException {
         return Stream.of(
                 Arguments.of(DriverManager.getConnection("jdbc:hsqldb:mem:testdb;shutdown=true", "SA", "")),
-                Arguments.of(DriverManager.getConnection("jdbc:h2:mem:testdb", "SA", ""))
-        );
+                Arguments.of(DriverManager.getConnection("jdbc:h2:mem:testdb", "SA", "")));
     }
 
     private long serial = 1234L;
@@ -81,12 +79,7 @@ public abstract class TestBase<E, I, P extends BasePatch, C> {
             db.insert(original, conn);
             assertEntity(original, conn);
 
-            var originals = List.of(
-                    newEntityWithId(),
-                    newEntityWithId(),
-                    newEntityWithId(),
-                    newEntityWithId()
-            );
+            var originals = List.of(newEntityWithId(), newEntityWithId(), newEntityWithId(), newEntityWithId());
 
             db.insert(originals, conn);
             assertEntities(originals, conn);
@@ -111,12 +104,7 @@ public abstract class TestBase<E, I, P extends BasePatch, C> {
         try (conn) {
             createTable(conn);
 
-            var originals = new ArrayList<>(List.of(
-                    newEntity(),
-                    newEntity(),
-                    newEntity(),
-                    newEntity()
-            ));
+            var originals = new ArrayList<>(List.of(newEntity(), newEntity(), newEntity(), newEntity()));
 
             var ids = db.insert(originals, conn);
 
@@ -127,10 +115,7 @@ public abstract class TestBase<E, I, P extends BasePatch, C> {
             assertCount(originals.size(), conn);
             assertAllEntities(originals, conn);
 
-            var updates = List.of(
-                    updateEntity(originals.get(1)),
-                    updateEntity(originals.get(3))
-            );
+            var updates = List.of(updateEntity(originals.get(1)), updateEntity(originals.get(3)));
             db.update(updates, conn);
             assertAllEntities(List.of(originals.get(0), updates.get(0), originals.get(2), updates.get(1)), conn);
 
@@ -182,13 +167,15 @@ public abstract class TestBase<E, I, P extends BasePatch, C> {
     }
 
     protected void assertEntities(List<E> expected, Connection conn) {
-        var actual = expected.stream().map(e -> {
-            try {
-                return db.select(getId(e), conn);
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        }).collect(Collectors.toList());
+        var actual = expected.stream()
+                .map(e -> {
+                    try {
+                        return db.select(getId(e), conn);
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                })
+                .collect(Collectors.toList());
         assertEntities(expected, actual);
     }
 
@@ -197,13 +184,10 @@ public abstract class TestBase<E, I, P extends BasePatch, C> {
     }
 
     protected void assertEntities(List<E> expected, List<E> actual) {
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
+        Assertions.assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
     }
 
     protected void assertDoesNotExist(I id, Connection conn) throws SQLException {
         Assertions.assertThat(db.select(id, conn)).isNull();
     }
-
 }

@@ -12,5 +12,4 @@ public @interface JdbcGenColumn {
     String name();
 
     boolean identity() default false;
-
 }

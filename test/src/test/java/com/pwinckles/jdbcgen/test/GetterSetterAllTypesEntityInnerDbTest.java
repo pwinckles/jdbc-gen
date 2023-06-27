@@ -2,13 +2,6 @@ package com.pwinckles.jdbcgen.test;
 
 import com.pwinckles.jdbcgen.OrderDirection;
 import com.pwinckles.jdbcgen.test.util.TestUtil;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -18,8 +11,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-public class GetterSetterAllTypesEntityInnerDbTest extends BaseAllTypesTest<Wrapper.GetterSetterAllTypesEntity, Long, GetterSetterAllTypesEntityInnerDb.Patch, GetterSetterAllTypesEntityInnerDb.Column> {
+public class GetterSetterAllTypesEntityInnerDbTest
+        extends BaseAllTypesTest<
+                Wrapper.GetterSetterAllTypesEntity,
+                Long,
+                GetterSetterAllTypesEntityInnerDb.Patch,
+                GetterSetterAllTypesEntityInnerDb.Column> {
 
     public GetterSetterAllTypesEntityInnerDbTest() {
         super(new GetterSetterAllTypesEntityInnerDb());
@@ -40,12 +44,12 @@ public class GetterSetterAllTypesEntityInnerDbTest extends BaseAllTypesTest<Wrap
                     newEntityWithId().setString("d"),
                     newEntityWithId().setString("c"),
                     newEntityWithId().setString("b"),
-                    newEntityWithId().setString("a")
-            ));
+                    newEntityWithId().setString("a")));
 
             db.insert(originals, conn);
 
-            var results = db.selectAll(GetterSetterAllTypesEntityInnerDb.Column.LONG_ID, OrderDirection.ASCENDING, conn);
+            var results =
+                    db.selectAll(GetterSetterAllTypesEntityInnerDb.Column.LONG_ID, OrderDirection.ASCENDING, conn);
             assertEntities(originals, results);
 
             results = db.selectAll(GetterSetterAllTypesEntityInnerDb.Column.STRING, OrderDirection.DESCENDING, conn);
@@ -177,27 +181,30 @@ public class GetterSetterAllTypesEntityInnerDbTest extends BaseAllTypesTest<Wrap
     }
 
     @Override
-    protected Pair<Wrapper.GetterSetterAllTypesEntity, GetterSetterAllTypesEntityInnerDb.Patch> patchPartial(Wrapper.GetterSetterAllTypesEntity entity) {
+    protected Pair<Wrapper.GetterSetterAllTypesEntity, GetterSetterAllTypesEntityInnerDb.Patch> patchPartial(
+            Wrapper.GetterSetterAllTypesEntity entity) {
         var updated = entity.clone()
                 .setString(RandomStringUtils.randomAlphanumeric(15))
                 .setUuid(UUID.randomUUID())
                 .setInstant(TestUtil.now())
                 .setDate(null);
 
-        return ImmutablePair.of(updated, new GetterSetterAllTypesEntityInnerDb.Patch()
-                .setString(updated.getString())
-                .setUuid(updated.getUuid())
-                .setInstant(updated.getInstant())
-                .setDate(updated.getDate()));
+        return ImmutablePair.of(
+                updated,
+                new GetterSetterAllTypesEntityInnerDb.Patch()
+                        .setString(updated.getString())
+                        .setUuid(updated.getUuid())
+                        .setInstant(updated.getInstant())
+                        .setDate(updated.getDate()));
     }
 
     @Override
-    protected GetterSetterAllTypesEntityInnerDb.Patch addRequiredFields(Wrapper.GetterSetterAllTypesEntity entity, GetterSetterAllTypesEntityInnerDb.Patch patch) {
+    protected GetterSetterAllTypesEntityInnerDb.Patch addRequiredFields(
+            Wrapper.GetterSetterAllTypesEntity entity, GetterSetterAllTypesEntityInnerDb.Patch patch) {
         return patch.setBoolPrim(entity.isBoolPrim())
                 .setDoublePrim(entity.getDoublePrim())
                 .setIntPrim(entity.getIntPrim())
                 .setShortPrim(entity.getShortPrim())
                 .setLongPrim(entity.getLongPrim());
     }
-
 }

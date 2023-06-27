@@ -15,5 +15,4 @@ public abstract class BasePatch {
     protected void put(String key, Object value) {
         data.put(key, value);
     }
-
 }

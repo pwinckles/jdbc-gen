@@ -3,7 +3,6 @@ package com.pwinckles.jdbcgen.test;
 import com.pwinckles.jdbcgen.JdbcGen;
 import com.pwinckles.jdbcgen.JdbcGenColumn;
 import com.pwinckles.jdbcgen.JdbcGenTable;
-
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -73,25 +72,26 @@ public class GetterConstructorAllTypesEntity {
     @JdbcGenColumn(name = "at_uuid")
     private final UUID uuid;
 
-    public GetterConstructorAllTypesEntity(Long longId,
-                                           long longPrim,
-                                           Integer intObj,
-                                           int intPrim,
-                                           Short shortObj,
-                                           short shortPrim,
-                                           Double doubleObj,
-                                           double doublePrim,
-                                           Boolean boolObj,
-                                           boolean boolPrim,
-                                           String string,
-                                           Instant instant,
-                                           LocalDateTime localDateTime,
-                                           LocalDate localDate,
-                                           OffsetDateTime offsetDateTime,
-                                           Date date,
-                                           Timestamp timestamp,
-                                           byte[] byteArray,
-                                           UUID uuid) {
+    public GetterConstructorAllTypesEntity(
+            Long longId,
+            long longPrim,
+            Integer intObj,
+            int intPrim,
+            Short shortObj,
+            short shortPrim,
+            Double doubleObj,
+            double doublePrim,
+            Boolean boolObj,
+            boolean boolPrim,
+            String string,
+            Instant instant,
+            LocalDateTime localDateTime,
+            LocalDate localDate,
+            OffsetDateTime offsetDateTime,
+            Date date,
+            Timestamp timestamp,
+            byte[] byteArray,
+            UUID uuid) {
         this.longId = longId;
         this.longPrim = longPrim;
         this.intObj = intObj;
@@ -188,5 +188,4 @@ public class GetterConstructorAllTypesEntity {
     public UUID getUuid() {
         return uuid;
     }
-
 }

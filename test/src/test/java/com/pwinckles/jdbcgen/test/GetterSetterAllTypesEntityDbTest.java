@@ -2,13 +2,6 @@ package com.pwinckles.jdbcgen.test;
 
 import com.pwinckles.jdbcgen.OrderDirection;
 import com.pwinckles.jdbcgen.test.util.TestUtil;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -18,8 +11,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-public class GetterSetterAllTypesEntityDbTest extends BaseAllTypesTest<GetterSetterAllTypesEntity, Long, GetterSetterAllTypesEntityDb.Patch, GetterSetterAllTypesEntityDb.Column> {
+public class GetterSetterAllTypesEntityDbTest
+        extends BaseAllTypesTest<
+                GetterSetterAllTypesEntity,
+                Long,
+                GetterSetterAllTypesEntityDb.Patch,
+                GetterSetterAllTypesEntityDb.Column> {
 
     public GetterSetterAllTypesEntityDbTest() {
         super(new GetterSetterAllTypesEntityDb());
@@ -35,8 +39,7 @@ public class GetterSetterAllTypesEntityDbTest extends BaseAllTypesTest<GetterSet
                     newEntityWithId().setString("d"),
                     newEntityWithId().setString("c"),
                     newEntityWithId().setString("b"),
-                    newEntityWithId().setString("a")
-            ));
+                    newEntityWithId().setString("a")));
 
             db.insert(originals, conn);
 
@@ -177,27 +180,30 @@ public class GetterSetterAllTypesEntityDbTest extends BaseAllTypesTest<GetterSet
     }
 
     @Override
-    protected Pair<GetterSetterAllTypesEntity, GetterSetterAllTypesEntityDb.Patch> patchPartial(GetterSetterAllTypesEntity entity) {
+    protected Pair<GetterSetterAllTypesEntity, GetterSetterAllTypesEntityDb.Patch> patchPartial(
+            GetterSetterAllTypesEntity entity) {
         var updated = entity.clone()
                 .setString(RandomStringUtils.randomAlphanumeric(15))
                 .setUuid(UUID.randomUUID())
                 .setInstant(TestUtil.now())
                 .setDate(null);
 
-        return ImmutablePair.of(updated, new GetterSetterAllTypesEntityDb.Patch()
-                .setString(updated.getString())
-                .setUuid(updated.getUuid())
-                .setInstant(updated.getInstant())
-                .setDate(updated.getDate()));
+        return ImmutablePair.of(
+                updated,
+                new GetterSetterAllTypesEntityDb.Patch()
+                        .setString(updated.getString())
+                        .setUuid(updated.getUuid())
+                        .setInstant(updated.getInstant())
+                        .setDate(updated.getDate()));
     }
 
     @Override
-    protected GetterSetterAllTypesEntityDb.Patch addRequiredFields(GetterSetterAllTypesEntity entity, GetterSetterAllTypesEntityDb.Patch patch) {
+    protected GetterSetterAllTypesEntityDb.Patch addRequiredFields(
+            GetterSetterAllTypesEntity entity, GetterSetterAllTypesEntityDb.Patch patch) {
         return patch.setBoolPrim(entity.isBoolPrim())
                 .setDoublePrim(entity.getDoublePrim())
                 .setIntPrim(entity.getIntPrim())
                 .setShortPrim(entity.getShortPrim())
                 .setLongPrim(entity.getLongPrim());
     }
-
 }
