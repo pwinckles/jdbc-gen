@@ -6,7 +6,7 @@
 basic CRUD operations on single-table entities. It does not model entity relationships or operate on aggregates.
 
 Its niche is executing simple DB operations without the weight and baggage of a proper ORM, the tediousness of
-JDBC, and no runtime reflection.
+JDBC, and does not use runtime reflection.
 
 ## Dependencies
 
