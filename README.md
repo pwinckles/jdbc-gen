@@ -68,31 +68,54 @@ public class Example {
         return this.id;
     }
 
-    public void setId(Long id) {
+    public Example setId(Long id) {
         this.id = id;
+        return this;
     }
 
     public String getValue() {
         return this.value;
     }
 
-    public void setValue(String value) {
+    public Example setValue(String value) {
         this.value = value;
+        return this;
     }
 
     public Instant getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Instant timestamp) {
+    public Example setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
+        return this;
     }
 }
 ```
 
 After compilation, a class named `ExampleDb` is generated in the same package as its corresponding entity. The
 `ExampleDb` object implements `JdbcGenDb` and is able to select, select all, insert, update, patch, delete, and execute
-batch operations.
+batch operations. For example:
+
+```java
+// In these examples, "conn" is a JDBC connection created elsewhere
+
+var exampleDb = new ExampleDb();
+
+// insert and return a generated id
+var id = exampleDb.insert(new Example()
+        .setValue("test")
+        .setTimestamp(Instant.now()), conn);
+
+// update a single field on an existing entity
+exampleDb.update(id, new ExambleDb.Patch().setValue("updated"), conn);
+
+// select all entities, ordered by a specific column
+var examples = exampleDb.selectAll(ExampleDb.Column.VALUE, OrderDirection.ASCENDING, conn);
+
+// delete an entity
+exampleDb.delete(id, conn);
+```
 
 `jdbc-gen` supports setting fields using a canonical constructor, setters, or direct field access, and getting values
 using getters or direct access. It does not use reflection. It determines which method to use at compile time based on
