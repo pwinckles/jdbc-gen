@@ -2,6 +2,7 @@ package com.pwinckles.jdbcgen.processor;
 
 import com.pwinckles.jdbcgen.JdbcGen;
 import com.pwinckles.jdbcgen.JdbcGenColumn;
+import com.pwinckles.jdbcgen.JdbcGenDb;
 import com.pwinckles.jdbcgen.JdbcGenTable;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,9 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 
+/**
+ * Analyzes an entity class to extract the metadata necessary to generate a {@link JdbcGenDb} instance.
+ */
 public class EntityAnalyzer {
 
     private final ProcessingEnvironment processingEnv;
@@ -25,6 +29,13 @@ public class EntityAnalyzer {
         this.processingEnv = processingEnv;
     }
 
+    /**
+     * Analyzes a class that was annotated with {@link JdbcGen}. The metadata necessary to generate an instance of
+     * {@link JdbcGenDb} is extracted, validated, and returned.
+     *
+     * @param entity the entity class
+     * @return the entity metadata
+     */
     public EntitySpec analyze(TypeElement entity) {
         validateEntityType(entity);
 
@@ -47,19 +58,16 @@ public class EntityAnalyzer {
         var tableAnnotation = getAndValidateTableAnnotation(entity);
         entitySpecBuilder.withTableName(tableAnnotation.name());
 
-        var columnFields = getAndValidateColumnFields(entity);
+        var fields = getAndValidateFields(entity);
 
-        var constructor = resolveConstructor(entity, columnFields);
+        var constructor = resolveConstructor(entity, fields);
         var hasCanonicalConstructor = !constructor.getParameters().isEmpty();
         entitySpecBuilder.withConstructorElement(constructor).withCanonicalConstructor(hasCanonicalConstructor);
 
-        var columnSpecs = resolveColumnSpecs(entity, columnFields, hasCanonicalConstructor);
-        entitySpecBuilder.withColumns(columnSpecs);
+        var fieldSpecs = resolveFieldSpecs(entity, fields, hasCanonicalConstructor);
+        entitySpecBuilder.withColumns(fieldSpecs);
 
-        columnSpecs.stream()
-                .filter(ColumnSpec::isIdentity)
-                .findFirst()
-                .ifPresent(entitySpecBuilder::withIdentityColumn);
+        fieldSpecs.stream().filter(FieldSpec::isIdentity).findFirst().ifPresent(entitySpecBuilder::withIdentityColumn);
 
         return entitySpecBuilder.build();
     }
@@ -107,8 +115,8 @@ public class EntityAnalyzer {
         return tableAnnotation;
     }
 
-    private List<VariableElement> getAndValidateColumnFields(TypeElement entity) {
-        var columnFields = entity.getEnclosedElements().stream()
+    private List<VariableElement> getAndValidateFields(TypeElement entity) {
+        var fields = entity.getEnclosedElements().stream()
                 .filter(element -> {
                     var annotations = element.getAnnotationsByType(JdbcGenColumn.class);
 
@@ -128,12 +136,12 @@ public class EntityAnalyzer {
                 .map(VariableElement.class::cast)
                 .collect(Collectors.toList());
 
-        if (columnFields.isEmpty()) {
+        if (fields.isEmpty()) {
             throw new RuntimeException(
                     entity.getQualifiedName() + " must have at least one field annotated with @JdbcGenColumn.");
         }
 
-        if (columnFields.stream()
+        if (fields.stream()
                         .filter(field -> field.getAnnotationsByType(JdbcGenColumn.class)[0].identity())
                         .count()
                 != 1) {
@@ -141,11 +149,11 @@ public class EntityAnalyzer {
                     + " must have exactly one field annotated with @JdbcGenColumn(identity = true).");
         }
 
-        return columnFields;
+        return fields;
     }
 
-    private ExecutableElement resolveConstructor(TypeElement entity, List<VariableElement> columnFields) {
-        var columnTypes = columnFields.stream().map(VariableElement::asType).collect(Collectors.toList());
+    private ExecutableElement resolveConstructor(TypeElement entity, List<VariableElement> fields) {
+        var fieldType = fields.stream().map(VariableElement::asType).collect(Collectors.toList());
 
         var publicConstructors = entity.getEnclosedElements().stream()
                 .filter(element -> element.getKind() == ElementKind.CONSTRUCTOR)
@@ -160,7 +168,7 @@ public class EntityAnalyzer {
                     .map(VariableElement::asType)
                     .collect(Collectors.toList());
 
-            if (Objects.equals(columnTypes, paramTypes)) {
+            if (Objects.equals(fieldType, paramTypes)) {
                 return constructor;
             } else if (paramTypes.isEmpty()) {
                 defaultConstructor = constructor;
@@ -175,9 +183,9 @@ public class EntityAnalyzer {
         return defaultConstructor;
     }
 
-    private List<ColumnSpec> resolveColumnSpecs(
-            TypeElement entity, List<VariableElement> columnFields, boolean hasCanonicalConstructor) {
-        var columnSpecs = new ArrayList<ColumnSpec>();
+    private List<FieldSpec> resolveFieldSpecs(
+            TypeElement entity, List<VariableElement> fields, boolean hasCanonicalConstructor) {
+        var fieldSpecs = new ArrayList<FieldSpec>();
 
         var candidateMethodMap = entity.getEnclosedElements().stream()
                 .filter(element -> element.getKind() == ElementKind.METHOD)
@@ -185,52 +193,52 @@ public class EntityAnalyzer {
                 .filter(element -> !element.getModifiers().contains(Modifier.PRIVATE))
                 .collect(Collectors.toMap(element -> element.getSimpleName().toString(), Function.identity()));
 
-        for (var columnField : columnFields) {
-            var name = columnField.getSimpleName().toString();
-            var fieldIsPrivate = columnField.getModifiers().contains(Modifier.PRIVATE);
-            var columnAnnotation = columnField.getAnnotationsByType(JdbcGenColumn.class)[0];
-            var columnSpecBuilder = ColumnSpec.builder()
+        for (var field : fields) {
+            var name = field.getSimpleName().toString();
+            var fieldIsPrivate = field.getModifiers().contains(Modifier.PRIVATE);
+            var columnAnnotation = field.getAnnotationsByType(JdbcGenColumn.class)[0];
+            var builder = FieldSpec.builder()
                     .withColumnName(columnAnnotation.name())
                     .withIdentity(columnAnnotation.identity())
-                    .withFieldElement(columnField);
+                    .withFieldElement(field);
 
-            var getter = candidateMethodMap.get(getterName(columnField));
+            var getter = candidateMethodMap.get(getterName(field));
             if (getter != null
                     && getter.getParameters().isEmpty()
-                    && columnField.asType().equals(getter.getReturnType())) {
-                columnSpecBuilder.withGetterElement(getter).withGetMethod(FieldGetMethod.GETTER);
+                    && field.asType().equals(getter.getReturnType())) {
+                builder.withGetterElement(getter).withGetMethod(FieldGetMethod.GETTER);
             } else if (fieldIsPrivate) {
                 throw new RuntimeException(entity.getQualifiedName() + "." + name
                         + " must either be non-private or have a non-private getter.");
             } else {
-                columnSpecBuilder.withGetMethod(FieldGetMethod.DIRECT);
+                builder.withGetMethod(FieldGetMethod.DIRECT);
             }
 
             var setter = candidateMethodMap.get(BeanUtil.setterName(name));
             if (setter != null
                     && setter.getParameters().size() == 1
-                    && columnField.asType().equals(setter.getParameters().get(0).asType())) {
-                columnSpecBuilder.withSetterElement(setter);
+                    && field.asType().equals(setter.getParameters().get(0).asType())) {
+                builder.withSetterElement(setter);
 
                 if (!hasCanonicalConstructor) {
-                    columnSpecBuilder.withSetMethod(FieldSetMethod.SETTER);
+                    builder.withSetMethod(FieldSetMethod.SETTER);
                 } else {
-                    columnSpecBuilder.withSetMethod(FieldSetMethod.CONSTRUCTOR);
+                    builder.withSetMethod(FieldSetMethod.CONSTRUCTOR);
                 }
             } else if (hasCanonicalConstructor) {
-                columnSpecBuilder.withSetMethod(FieldSetMethod.CONSTRUCTOR);
-            } else if (!fieldIsPrivate && !columnField.getModifiers().contains(Modifier.FINAL)) {
-                columnSpecBuilder.withSetMethod(FieldSetMethod.DIRECT);
+                builder.withSetMethod(FieldSetMethod.CONSTRUCTOR);
+            } else if (!fieldIsPrivate && !field.getModifiers().contains(Modifier.FINAL)) {
+                builder.withSetMethod(FieldSetMethod.DIRECT);
             } else {
                 throw new RuntimeException(entity.getQualifiedName() + "." + name
                         + " must be writable by one of the following, non-private mechanisms: "
                         + "canonical constructor, setter, or non-final field.");
             }
 
-            columnSpecs.add(columnSpecBuilder.build());
+            fieldSpecs.add(builder.build());
         }
 
-        return columnSpecs;
+        return fieldSpecs;
     }
 
     private String getterName(VariableElement field) {

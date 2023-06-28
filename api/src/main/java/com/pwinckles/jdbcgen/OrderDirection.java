@@ -1,5 +1,8 @@
 package com.pwinckles.jdbcgen;
 
+/**
+ * The direction to sort query results.
+ */
 public enum OrderDirection {
     ASCENDING("ASC"),
     DESCENDING("DESC");

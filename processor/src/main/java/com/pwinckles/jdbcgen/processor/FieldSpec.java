@@ -4,7 +4,10 @@ import java.util.Objects;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 
-public class ColumnSpec {
+/**
+ * Contains metadata about the mapping of an entity field to a DB table column.
+ */
+public class FieldSpec {
 
     private final String columnName;
     private final boolean identity;
@@ -18,7 +21,7 @@ public class ColumnSpec {
         return new Builder();
     }
 
-    private ColumnSpec(
+    private FieldSpec(
             String columnName,
             boolean identity,
             VariableElement fieldElement,
@@ -42,30 +45,51 @@ public class ColumnSpec {
         }
     }
 
+    /**
+     * @return the name of the column in the DB
+     */
     public String getColumnName() {
         return columnName;
     }
 
+    /**
+     * @return the entity field name
+     */
     public String getFieldName() {
         return fieldElement.getSimpleName().toString();
     }
 
+    /**
+     * @return true if the field's type is a Java primitive
+     */
     public boolean isPrimitive() {
         return fieldElement.asType().getKind().isPrimitive();
     }
 
+    /**
+     * @return true if the field maps to the table's ID column
+     */
     public boolean isIdentity() {
         return identity;
     }
 
+    /**
+     * @return the field element
+     */
     public VariableElement getFieldElement() {
         return fieldElement;
     }
 
+    /**
+     * @return the getter associated to the field, may be null
+     */
     public ExecutableElement getGetterElement() {
         return getterElement;
     }
 
+    /**
+     * @return the name of the getter associated to the field, may be null
+     */
     public String getGetterName() {
         if (getterElement == null) {
             return null;
@@ -73,10 +97,16 @@ public class ColumnSpec {
         return getterElement.getSimpleName().toString();
     }
 
+    /**
+     * @return the setter associated to the field, may be null
+     */
     public ExecutableElement getSetterElement() {
         return setterElement;
     }
 
+    /**
+     * @return the name of the setter associated to the field, may be null
+     */
     public String getSetterName() {
         if (setterElement == null) {
             return null;
@@ -84,10 +114,16 @@ public class ColumnSpec {
         return setterElement.getSimpleName().toString();
     }
 
+    /**
+     * @return indicates the method to use to get the field value
+     */
     public FieldGetMethod getGetMethod() {
         return getMethod;
     }
 
+    /**
+     * @return indicates the method to use to set the field value
+     */
     public FieldSetMethod getSetMethod() {
         return setMethod;
     }
@@ -136,8 +172,8 @@ public class ColumnSpec {
             return this;
         }
 
-        public ColumnSpec build() {
-            return new ColumnSpec(
+        public FieldSpec build() {
+            return new FieldSpec(
                     columnName, identity, fieldElement, getterElement, setterElement, getMethod, setMethod);
         }
     }

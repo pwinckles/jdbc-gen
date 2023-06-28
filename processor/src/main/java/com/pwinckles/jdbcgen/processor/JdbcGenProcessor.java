@@ -1,6 +1,7 @@
 package com.pwinckles.jdbcgen.processor;
 
 import com.pwinckles.jdbcgen.JdbcGen;
+import com.pwinckles.jdbcgen.JdbcGenDb;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +14,9 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 
+/**
+ * Processes {@link JdbcGen} annotations and generates {@link JdbcGenDb} innstances.
+ */
 @SupportedAnnotationTypes({"com.pwinckles.jdbcgen.JdbcGen"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class JdbcGenProcessor extends AbstractProcessor {
