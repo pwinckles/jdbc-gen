@@ -28,8 +28,8 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/pwinckles/jdbc-gen.git</connection>
-        <developerConnection>scm:git:ssh://github.com:pwinckles/jdbc-gen.git</developerConnection>
+        <connection>scm:git@github.com:pwinckles/jdbc-gen.git</connection>
+        <developerConnection>scm:git@github.com:pwinckles/jdbc-gen.git</developerConnection>
         <url>https://github.com/pwinckles/jdbc-gen</url>
     </scm>
 
