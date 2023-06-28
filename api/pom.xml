@@ -5,12 +5,12 @@
     <parent>
         <groupId>com.pwinckles.jdbcgen</groupId>
         <artifactId>jdbc-gen-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>jdbc-gen-api</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <name>jdbc-gen-api</name>
     <description>API for jdbc-gen</description>

@@ -5,12 +5,12 @@
     <parent>
         <groupId>com.pwinckles.jdbcgen</groupId>
         <artifactId>jdbc-gen-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>jdbc-gen-test</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <name>jdbc-gen-test</name>
     <description>Tests for jdbc-gen</description>
@@ -19,7 +19,7 @@
         <dependency>
             <groupId>com.pwinckles.jdbcgen</groupId>
             <artifactId>jdbc-gen-processor</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1-SNAPSHOT</version>
         </dependency>
 
         <!-- Test -->
