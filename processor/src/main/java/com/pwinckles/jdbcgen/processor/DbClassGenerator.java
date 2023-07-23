@@ -10,6 +10,7 @@ import com.google.common.base.CaseFormat;
 import com.pwinckles.jdbcgen.BasePatch;
 import com.pwinckles.jdbcgen.JdbcGenDb;
 import com.pwinckles.jdbcgen.OrderDirection;
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
@@ -22,10 +23,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.processing.Generated;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -52,6 +56,7 @@ public class DbClassGenerator {
         var builder = TypeSpec.classBuilder(entitySpec.getDbClassName())
                 .addSuperinterface(ParameterizedTypeName.get(
                         ClassName.get(JdbcGenDb.class), entityType, idType, patchType, columnType))
+                .addAnnotation(generatedAnnotation())
                 .addJavadoc("Provides basic DB access for {@link $T} entities.", entityType);
 
         if (entitySpec.getTypeElement().getModifiers().contains(PUBLIC)) {
@@ -97,6 +102,7 @@ public class DbClassGenerator {
     private TypeSpec genColumnsEnum(TypeName entityType, EntitySpec entitySpec) {
         var builder = TypeSpec.enumBuilder("Column")
                 .addModifiers(PUBLIC)
+                .addAnnotation(generatedAnnotation())
                 .addJavadoc("The database columns associated to {@link $T}", entityType);
 
         entitySpec
@@ -119,6 +125,7 @@ public class DbClassGenerator {
         var builder = TypeSpec.classBuilder("Patch")
                 .addModifiers(PUBLIC, STATIC)
                 .superclass(BasePatch.class)
+                .addAnnotation(generatedAnnotation())
                 .addJavadoc(
                         "Patch implementation that enables partial updates for {@link $T} entities."
                                 + " Only the fields that are set this object will be modified in the DB.",
@@ -681,6 +688,16 @@ public class DbClassGenerator {
                 .addStatement("return null")
                 .endControlFlow()
                 .addStatement("return value")
+                .build();
+    }
+
+    private AnnotationSpec generatedAnnotation() {
+        return AnnotationSpec.builder(Generated.class)
+                .addMember("value", "$S", JdbcGenProcessor.class.getName())
+                .addMember(
+                        "date",
+                        "$S",
+                        OffsetDateTime.now().truncatedTo(ChronoUnit.MILLIS).toString())
                 .build();
     }
 
