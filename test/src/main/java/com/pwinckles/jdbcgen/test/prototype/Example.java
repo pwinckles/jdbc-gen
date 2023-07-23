@@ -6,6 +6,7 @@ public class Example {
 
     private Long id;
     private String name;
+    private long count;
     private Instant timestamp;
 
     public Long getId() {
@@ -26,6 +27,15 @@ public class Example {
         return this;
     }
 
+    public long getCount() {
+        return count;
+    }
+
+    public Example setCount(long count) {
+        this.count = count;
+        return this;
+    }
+
     public Instant getTimestamp() {
         return timestamp;
     }
@@ -37,6 +47,10 @@ public class Example {
 
     @Override
     public String toString() {
-        return "Example{" + "id=" + id + ", name='" + name + '\'' + ", timestamp=" + timestamp + '}';
+        return "Example{" + "id="
+                + id + ", name='"
+                + name + '\'' + ", count="
+                + count + ", timestamp="
+                + timestamp + '}';
     }
 }

@@ -132,3 +132,5 @@ In the future, support may be added for the following features:
 2. `SELECT` query paging
 3. `WHERE` clause filtering
 4. Flat table joins (aggregates will never be supported)
+5. Record support
+6. Inheritance?

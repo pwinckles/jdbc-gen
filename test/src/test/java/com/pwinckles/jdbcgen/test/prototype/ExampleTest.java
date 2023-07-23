@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -182,12 +183,16 @@ public class ExampleTest {
     }
 
     private Example example() {
-        return new Example().setName(RandomStringUtils.randomAlphanumeric(10)).setTimestamp(TestUtil.now());
+        return new Example()
+                .setName(RandomStringUtils.randomAlphanumeric(10))
+                .setCount(RandomUtils.nextLong())
+                .setTimestamp(TestUtil.now());
     }
 
     private void createTable(Connection conn) throws SQLException {
         try (var stmt = conn.createStatement()) {
-            stmt.execute("CREATE TABLE example (id IDENTITY PRIMARY KEY, name VARCHAR(255), timestamp TIMESTAMP)");
+            stmt.execute(
+                    "CREATE TABLE example (id IDENTITY PRIMARY KEY, name VARCHAR(255), count BIGINT, timestamp TIMESTAMP)");
         }
     }
 }

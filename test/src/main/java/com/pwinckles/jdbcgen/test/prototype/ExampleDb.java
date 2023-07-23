@@ -15,11 +15,10 @@ import java.util.stream.Collectors;
 
 public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, ExampleDb.Column> {
 
-    // TODO javadoc
-
     public enum Column {
         ID("id"),
         NAME("name"),
+        COUNT("count"),
         TIMESTAMP("timestamp");
 
         private final String value;
@@ -45,6 +44,11 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
             return this;
         }
 
+        public Patch setCount(long count) {
+            put("count", count);
+            return this;
+        }
+
         public Patch setTimestamp(Instant timestamp) {
             put("timestamp", timestamp);
             return this;
@@ -56,7 +60,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
      */
     @Override
     public Example select(Long id, Connection conn) throws SQLException {
-        try (var stmt = conn.prepareStatement("SELECT id, name, timestamp FROM example WHERE id = ? LIMIT 1")) {
+        try (var stmt = conn.prepareStatement("SELECT id, name, count, timestamp FROM example WHERE id = ? LIMIT 1")) {
             stmt.setObject(1, id);
             var rs = stmt.executeQuery();
             if (rs.next()) {
@@ -74,7 +78,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         var results = new ArrayList<Example>();
 
         try (var stmt = conn.createStatement()) {
-            var rs = stmt.executeQuery("SELECT id, name, timestamp FROM example");
+            var rs = stmt.executeQuery("SELECT id, name, count, timestamp FROM example");
             while (rs.next()) {
                 results.add(fromResultSet(rs));
             }
@@ -91,8 +95,8 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         var results = new ArrayList<Example>();
 
         try (var stmt = conn.createStatement()) {
-            var rs = stmt.executeQuery(
-                    "SELECT id, name, timestamp FROM example ORDER BY " + orderBy.value + " " + direction.getValue());
+            var rs = stmt.executeQuery("SELECT id, name, count, timestamp FROM example ORDER BY " + orderBy.value + " "
+                    + direction.getValue());
             while (rs.next()) {
                 results.add(fromResultSet(rs));
             }
@@ -128,7 +132,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
 
     private Long insertWithGeneratedId(Example entity, Connection conn) throws SQLException {
         try (var stmt = conn.prepareStatement(
-                "INSERT INTO example (name, timestamp) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                "INSERT INTO example (name, count, timestamp) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
             prepareInsert(entity, stmt);
             stmt.executeUpdate();
             var rs = stmt.getGeneratedKeys();
@@ -141,7 +145,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
     }
 
     private Long insertWithSpecifiedId(Example entity, Connection conn) throws SQLException {
-        try (var stmt = conn.prepareStatement("INSERT INTO example (id, name, timestamp) VALUES (?, ?, ?)")) {
+        try (var stmt = conn.prepareStatement("INSERT INTO example (id, name, count, timestamp) VALUES (?, ?, ?, ?)")) {
             prepareInsert(entity, stmt);
             stmt.executeUpdate();
         }
@@ -222,7 +226,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         var ids = new ArrayList<Long>();
 
         try (var stmt = conn.prepareStatement(
-                "INSERT INTO example (name, timestamp) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                "INSERT INTO example (name, count, timestamp) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
             for (var entity : entities) {
                 prepareInsert(entity, stmt);
                 stmt.addBatch();
@@ -240,7 +244,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
     }
 
     private List<Long> insertWithSpecifiedId(List<Example> entities, Connection conn) throws SQLException {
-        try (var stmt = conn.prepareStatement("INSERT INTO example (id, name, timestamp) VALUES (?, ?, ?)")) {
+        try (var stmt = conn.prepareStatement("INSERT INTO example (id, name, count, timestamp) VALUES (?, ?, ?, ?)")) {
             for (var entity : entities) {
                 prepareInsert(entity, stmt);
                 stmt.addBatch();
@@ -257,7 +261,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
      */
     @Override
     public int update(Example entity, Connection conn) throws SQLException {
-        try (var stmt = conn.prepareStatement("UPDATE example SET name = ?, timestamp = ? WHERE id = ?")) {
+        try (var stmt = conn.prepareStatement("UPDATE example SET name = ?, count = ?, timestamp = ? WHERE id = ?")) {
             prepareUpdate(entity, stmt);
             return stmt.executeUpdate();
         }
@@ -302,7 +306,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
      */
     @Override
     public int[] update(List<Example> entities, Connection conn) throws SQLException {
-        try (var stmt = conn.prepareStatement("UPDATE example SET name = ?, timestamp = ? WHERE id = ?")) {
+        try (var stmt = conn.prepareStatement("UPDATE example SET name = ?, count = ?, timestamp = ? WHERE id = ?")) {
             for (var entity : entities) {
                 prepareUpdate(entity, stmt);
                 stmt.addBatch();
@@ -352,6 +356,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         var entity = new Example();
         entity.setId(getNullableValue(rs, i++, Long.class));
         entity.setName(getNullableValue(rs, i++, String.class));
+        entity.setCount(rs.getLong(i++));
         entity.setTimestamp(getNullableValue(rs, i++, Instant.class));
         return entity;
     }
@@ -370,12 +375,14 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
             stmt.setObject(i++, entity.getId());
         }
         stmt.setObject(i++, entity.getName());
+        stmt.setObject(i++, entity.getCount());
         stmt.setObject(i++, entity.getTimestamp());
     }
 
     private void prepareUpdate(Example entity, PreparedStatement stmt) throws SQLException {
         int i = 1;
         stmt.setObject(i++, entity.getName());
+        stmt.setObject(i++, entity.getCount());
         stmt.setObject(i++, entity.getTimestamp());
         stmt.setObject(i++, entity.getId());
     }
