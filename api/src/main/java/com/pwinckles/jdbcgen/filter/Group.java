@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Objects;
 
 // TODO javadoc
-class Group implements FilterPart {
+public class Group implements FilterPart {
 
     private final boolean negate;
     private final List<FilterPart> filterParts;
