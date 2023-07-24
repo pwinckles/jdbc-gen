@@ -147,6 +147,33 @@ public class ExampleTest {
         }
     }
 
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void selectAllFiltered(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var originals = new ArrayList<>(List.of(
+                    new Example().setId(1L).setName("d").setCount(10),
+                    new Example().setId(2L).setName("c").setCount(100),
+                    new Example().setId(3L).setName("b").setCount(0),
+                    new Example().setId(4L).setName("a").setCount(5)));
+
+            exampleDb.insert(originals, conn);
+
+            var results = exampleDb.selectAllFiltered(
+                    conn, fb -> fb.name().isEqualTo("b").or().count().isGreaterThan(10));
+            assertEntities(List.of(originals.get(1), originals.get(2)), results);
+
+            results = exampleDb.selectAllFiltered(conn, fb -> fb.group(
+                            gb -> gb.name().isEqualTo("a").and().count().isEqualTo(10))
+                    .or()
+                    .name()
+                    .isEqualTo("c"));
+            assertEntities(List.of(originals.get(1)), results);
+        }
+    }
+
     private void assertCount(long expected, Connection conn) throws SQLException {
         Assertions.assertThat(exampleDb.count(conn)).isEqualTo(expected);
     }
