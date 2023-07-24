@@ -3,6 +3,7 @@ package com.pwinckles.jdbcgen.test.prototype;
 import com.pwinckles.jdbcgen.BasePatch;
 import com.pwinckles.jdbcgen.JdbcGenDb;
 import com.pwinckles.jdbcgen.OrderDirection;
+import com.pwinckles.jdbcgen.filter.Filter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,6 +12,7 @@ import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, ExampleDb.Column> {
@@ -79,6 +81,28 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
 
         try (var stmt = conn.createStatement()) {
             var rs = stmt.executeQuery("SELECT id, name, count, timestamp FROM example");
+            while (rs.next()) {
+                results.add(fromResultSet(rs));
+            }
+        }
+
+        return results;
+    }
+
+    public List<Example> selectAllFiltered(Connection conn, Consumer<ExampleFilterBuilder> filterer)
+            throws SQLException {
+        // TODO
+        var results = new ArrayList<Example>();
+
+        var filter = new Filter();
+        filterer.accept(new ExampleFilterBuilder(filter));
+
+        var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp FROM example");
+        filter.buildQuery(queryBuilder);
+
+        try (var stmt = conn.prepareStatement(queryBuilder.toString())) {
+            filter.addArguments(1, stmt);
+            var rs = stmt.executeQuery();
             while (rs.next()) {
                 results.add(fromResultSet(rs));
             }
