@@ -3,17 +3,18 @@ package com.pwinckles.jdbcgen.filter;
 import java.util.Objects;
 
 // TODO javadoc
-public class GeneralPredicateBuilder<B, T> {
+public class ObjectPredicateBuilder<B, T> extends CollectionPredicateBuilder<B, T> {
 
     private final String field;
     private final Filter filter;
     private final FilterBuilderHelper<B> helper;
 
     // TODO javadoc
-    public GeneralPredicateBuilder(String field, Filter filter, FilterBuilderHelper<B> helper) {
-        this.field = Objects.requireNonNull(field, "field cannot be null");
-        this.filter = Objects.requireNonNull(filter, "filter cannot be null");
-        this.helper = Objects.requireNonNull(helper, "helper cannot be null");
+    public ObjectPredicateBuilder(String field, Filter filter, FilterBuilderHelper<B> helper) {
+        super(field, filter, helper);
+        this.field = field;
+        this.filter = filter;
+        this.helper = helper;
     }
 
     // TODO javadoc

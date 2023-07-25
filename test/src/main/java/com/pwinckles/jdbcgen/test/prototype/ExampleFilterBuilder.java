@@ -3,9 +3,9 @@ package com.pwinckles.jdbcgen.test.prototype;
 import com.pwinckles.jdbcgen.filter.ConjunctionBuilder;
 import com.pwinckles.jdbcgen.filter.Filter;
 import com.pwinckles.jdbcgen.filter.FilterBuilderHelper;
-import com.pwinckles.jdbcgen.filter.GeneralPredicateBuilder;
 import com.pwinckles.jdbcgen.filter.Group;
 import com.pwinckles.jdbcgen.filter.LongPredicateBuilder;
+import com.pwinckles.jdbcgen.filter.ObjectPredicateBuilder;
 import com.pwinckles.jdbcgen.filter.StringPredicateBuilder;
 import java.time.Instant;
 import java.util.Objects;
@@ -21,8 +21,8 @@ public class ExampleFilterBuilder {
         this.helper = new FilterBuilderHelper<>(filter, this);
     }
 
-    public GeneralPredicateBuilder<ExampleFilterBuilder, Long> id() {
-        return new GeneralPredicateBuilder<>("id", filter, helper);
+    public ObjectPredicateBuilder<ExampleFilterBuilder, Long> id() {
+        return new ObjectPredicateBuilder<>("id", filter, helper);
     }
 
     public StringPredicateBuilder<ExampleFilterBuilder> name() {
@@ -33,8 +33,8 @@ public class ExampleFilterBuilder {
         return new LongPredicateBuilder<>("count", filter, helper);
     }
 
-    public GeneralPredicateBuilder<ExampleFilterBuilder, Instant> timestamp() {
-        return new GeneralPredicateBuilder<>("timestamp", filter, helper);
+    public ObjectPredicateBuilder<ExampleFilterBuilder, Instant> timestamp() {
+        return new ObjectPredicateBuilder<>("timestamp", filter, helper);
     }
 
     public ConjunctionBuilder<ExampleFilterBuilder> group(Consumer<ExampleFilterBuilder> filterBuilder) {

@@ -1,7 +1,5 @@
 package com.pwinckles.jdbcgen.filter;
 
-import java.util.Objects;
-
 // TODO javadoc
 public class ConjunctionBuilder<B> {
 
@@ -10,8 +8,8 @@ public class ConjunctionBuilder<B> {
 
     // TODO javadoc
     public ConjunctionBuilder(Filter filter, FilterBuilderHelper<B> helper) {
-        this.filter = Objects.requireNonNull(filter, "filter cannot be null");
-        this.helper = Objects.requireNonNull(helper, "helper cannot be null");
+        this.filter = filter;
+        this.helper = helper;
     }
 
     // TODO javadoc
