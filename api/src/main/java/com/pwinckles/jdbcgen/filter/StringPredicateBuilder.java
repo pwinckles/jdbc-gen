@@ -3,7 +3,7 @@ package com.pwinckles.jdbcgen.filter;
 import java.util.Objects;
 
 // TODO javadoc
-public class StringPredicateBuilder<B> extends GeneralPredicateBuilder<B, String> {
+public class StringPredicateBuilder<B> extends ObjectPredicateBuilder<B, String> {
 
     private final String field;
     private final Filter filter;

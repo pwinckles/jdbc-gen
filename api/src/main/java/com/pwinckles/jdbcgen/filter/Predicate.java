@@ -2,7 +2,6 @@ package com.pwinckles.jdbcgen.filter;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Objects;
 
 // TODO javadoc
 class Predicate implements FilterPart {
@@ -13,8 +12,8 @@ class Predicate implements FilterPart {
 
     // TODO javadoc
     public Predicate(String field, Operation operation, Object value) {
-        this.field = Objects.requireNonNull(field, "field cannot be null");
-        this.operation = Objects.requireNonNull(operation, "operation cannot be null");
+        this.field = field;
+        this.operation = operation;
         this.value = value;
     }
 

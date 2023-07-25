@@ -2,6 +2,13 @@ package com.pwinckles.jdbcgen.test.prototype;
 
 import com.pwinckles.jdbcgen.OrderDirection;
 import com.pwinckles.jdbcgen.test.util.TestUtil;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -10,12 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 public class ExampleTest {
 
@@ -171,6 +172,12 @@ public class ExampleTest {
                     .name()
                     .isEqualTo("c"));
             assertEntities(List.of(originals.get(1)), results);
+
+            results = exampleDb.selectAllFiltered(conn, fb -> fb.name().isIn(List.of("a", "d")));
+            assertEntities(List.of(originals.get(0), originals.get(3)), results);
+
+            results = exampleDb.selectAllFiltered(conn, fb -> fb.count().isNotIn(List.of(10L, 20L, 30L, 100L)));
+            assertEntities(List.of(originals.get(2), originals.get(3)), results);
         }
     }
 

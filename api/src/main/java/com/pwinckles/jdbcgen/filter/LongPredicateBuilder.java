@@ -1,9 +1,7 @@
 package com.pwinckles.jdbcgen.filter;
 
-import java.util.Objects;
-
 // TODO javadoc
-public class LongPredicateBuilder<B> {
+public class LongPredicateBuilder<B> extends CollectionPredicateBuilder<B, Long> {
 
     // TODO add the other primitives
 
@@ -13,9 +11,10 @@ public class LongPredicateBuilder<B> {
 
     // TODO javadoc
     public LongPredicateBuilder(String field, Filter filter, FilterBuilderHelper<B> helper) {
-        this.field = Objects.requireNonNull(field, "field cannot be null");
-        this.filter = Objects.requireNonNull(filter, "filter cannot be null");
-        this.helper = Objects.requireNonNull(helper, "helper cannot be null");
+        super(field, filter, helper);
+        this.field = field;
+        this.filter = filter;
+        this.helper = helper;
     }
 
     // TODO javadoc

@@ -1,7 +1,5 @@
 package com.pwinckles.jdbcgen.filter;
 
-import java.util.Objects;
-
 // TODO javadoc
 public class BooleanPredicateBuilder<B> {
 
@@ -11,9 +9,9 @@ public class BooleanPredicateBuilder<B> {
 
     // TODO javadoc
     public BooleanPredicateBuilder(String field, Filter filter, FilterBuilderHelper<B> helper) {
-        this.field = Objects.requireNonNull(field, "field cannot be null");
-        this.filter = Objects.requireNonNull(filter, "filter cannot be null");
-        this.helper = Objects.requireNonNull(helper, "helper cannot be null");
+        this.field = field;
+        this.filter = filter;
+        this.helper = helper;
     }
 
     // TODO javadoc
