@@ -16,7 +16,7 @@ Add a dependency on the API:
 <dependency>
     <groupId>com.pwinckles.jdbcgen</groupId>
     <artifactId>jdbc-gen-api</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
@@ -26,7 +26,7 @@ And the annotation processor:
 <dependency>
     <groupId>com.pwinckles.jdbcgen</groupId>
     <artifactId>jdbc-gen-processor</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <scope>provided</scope>
 </dependency>
 ```

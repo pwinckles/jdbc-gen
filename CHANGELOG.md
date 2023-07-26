@@ -2,6 +2,8 @@
 
 ## [Unreleased] - ReleaseDate
 
+## [1.0.1] - 2023-07-26
+
 ### Fixed
 
 - Correctly support quoted column/table names
@@ -14,5 +16,6 @@
 
 Initial release
 
-[Unreleased]: https://github.com/pwinckles/jdbc-gen/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/pwinckles/jdbc-gen/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/pwinckles/jdbc-gen/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/pwinckles/jdbc-gen/releases/tag/v1.0.0
