@@ -2,6 +2,10 @@
 
 ## [Unreleased] - ReleaseDate
 
+### Fixed
+
+- Correctly support quoted column/table names
+
 ### Added
 
 - `@Generated` annotation on all generated types

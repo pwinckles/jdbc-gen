@@ -109,7 +109,7 @@ public class DbClassGenerator {
                 .getFields()
                 .forEach(column -> builder.addEnumConstant(
                         toEnumCase(column.getFieldName()),
-                        TypeSpec.anonymousClassBuilder("$S", column.getColumnName())
+                        TypeSpec.anonymousClassBuilder("\"$L\"", column.getColumnName())
                                 .build()));
 
         builder.addField(String.class, "value", PRIVATE, FINAL)
@@ -137,7 +137,7 @@ public class DbClassGenerator {
                 .addModifiers(PUBLIC)
                 .returns(idType)
                 .addStatement(
-                        "return ($T) getData().get($S)",
+                        "return ($T) getData().get(\"$L\")",
                         idType,
                         entitySpec.getIdentityField().getColumnName())
                 .build());
@@ -149,7 +149,7 @@ public class DbClassGenerator {
                     .addModifiers(PUBLIC)
                     .returns(patchType)
                     .addParameter(TypeName.get(field.asType()), fieldName)
-                    .addStatement("put($S, $N)", column.getColumnName(), fieldName)
+                    .addStatement("put(\"$L\", $N)", column.getColumnName(), fieldName)
                     .addStatement("return this")
                     .build());
         });
@@ -169,7 +169,7 @@ public class DbClassGenerator {
                 .addParameter(idType, "id")
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
-                .beginControlFlow("try (var stmt = conn.prepareStatement($S))", query)
+                .beginControlFlow("try (var stmt = conn.prepareStatement(\"$L\"))", query)
                 .addStatement("stmt.setObject(1, id)")
                 .addStatement("var rs = stmt.executeQuery()")
                 .beginControlFlow("if (rs.next())")
@@ -191,7 +191,7 @@ public class DbClassGenerator {
                 .addException(SQLException.class)
                 .addStatement("var results = new $T<$T>()", ArrayList.class, entityType)
                 .beginControlFlow("try (var stmt = conn.createStatement())")
-                .addStatement("var rs = stmt.executeQuery($S)", query)
+                .addStatement("var rs = stmt.executeQuery(\"$L\")", query)
                 .beginControlFlow("while (rs.next())")
                 .addStatement("results.add(fromResultSet(rs))")
                 .endControlFlow()
@@ -213,7 +213,8 @@ public class DbClassGenerator {
                 .addException(SQLException.class)
                 .addStatement("var results = new $T<$T>()", ArrayList.class, entityType)
                 .beginControlFlow("try (var stmt = conn.createStatement())")
-                .addStatement("var rs = stmt.executeQuery($S + orderBy.value + \" \" + direction.getValue())", query)
+                .addStatement(
+                        "var rs = stmt.executeQuery(\"$L\" + orderBy.value + \" \" + direction.getValue())", query)
                 .beginControlFlow("while (rs.next())")
                 .addStatement("results.add(fromResultSet(rs))")
                 .endControlFlow()
@@ -233,7 +234,7 @@ public class DbClassGenerator {
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
                 .beginControlFlow("try (var stmt = conn.createStatement())")
-                .addStatement("var rs = stmt.executeQuery($S)", query)
+                .addStatement("var rs = stmt.executeQuery(\"$L\")", query)
                 .beginControlFlow("if (rs.next())")
                 .addStatement("return rs.getLong(1)")
                 .endControlFlow()
@@ -282,8 +283,7 @@ public class DbClassGenerator {
                 .addStatement("var data = entity.getData()")
                 .addStatement("var keys = new ArrayList<>(data.keySet())")
                 .addCode("\n")
-                .addStatement(
-                        "var queryBuilder = new StringBuilder($S)", "INSERT INTO " + entitySpec.getTableName() + "(")
+                .addStatement("var queryBuilder = new StringBuilder(\"INSERT INTO $L (\")", entitySpec.getTableName())
                 .addCode("\n")
                 .beginControlFlow("for (var it = keys.iterator(); it.hasNext();)")
                 .addStatement("queryBuilder.append(it.next())")
@@ -365,7 +365,7 @@ public class DbClassGenerator {
                 .addParameter(entityType, "entity")
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
-                .beginControlFlow("try (var stmt = conn.prepareStatement($S))", buildUpdateQuery(entitySpec))
+                .beginControlFlow("try (var stmt = conn.prepareStatement(\"$L\"))", buildUpdateQuery(entitySpec))
                 .addStatement("prepareUpdate(entity, stmt)")
                 .addStatement("return stmt.executeUpdate()")
                 .endControlFlow()
@@ -422,7 +422,7 @@ public class DbClassGenerator {
                 .addParameter(listType(entityType), "entities")
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
-                .beginControlFlow("try (var stmt = conn.prepareStatement($S))", buildUpdateQuery(entitySpec))
+                .beginControlFlow("try (var stmt = conn.prepareStatement(\"$L\"))", buildUpdateQuery(entitySpec))
                 .beginControlFlow("for (var entity : entities)")
                 .addStatement("prepareUpdate(entity, stmt)")
                 .addStatement("stmt.addBatch()")
@@ -441,7 +441,7 @@ public class DbClassGenerator {
                 .addParameter(idType, "id")
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
-                .beginControlFlow("try (var stmt = conn.prepareStatement($S))", buildDeleteQuery(entitySpec))
+                .beginControlFlow("try (var stmt = conn.prepareStatement(\"$L\"))", buildDeleteQuery(entitySpec))
                 .addStatement("stmt.setObject(1, id)")
                 .addStatement("return stmt.executeUpdate()")
                 .endControlFlow()
@@ -457,7 +457,7 @@ public class DbClassGenerator {
                 .addParameter(listType(idType), "ids")
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
-                .beginControlFlow("try (var stmt = conn.prepareStatement($S))", buildDeleteQuery(entitySpec))
+                .beginControlFlow("try (var stmt = conn.prepareStatement(\"$L\"))", buildDeleteQuery(entitySpec))
                 .beginControlFlow("for (var id : ids)")
                 .addStatement("stmt.setObject(1, id)")
                 .addStatement("stmt.addBatch()")
@@ -489,7 +489,7 @@ public class DbClassGenerator {
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
                 .beginControlFlow(
-                        "try (var stmt = conn.prepareStatement($S, $T.RETURN_GENERATED_KEYS))",
+                        "try (var stmt = conn.prepareStatement(\"$L\", $T.RETURN_GENERATED_KEYS))",
                         buildInsertQueryWithoutId(entitySpec),
                         Statement.class)
                 .addStatement("prepareInsert(entity, stmt)")
@@ -511,7 +511,7 @@ public class DbClassGenerator {
                 .addParameter(entityType, "entity")
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
-                .beginControlFlow("try (var stmt = conn.prepareStatement($S))", buildInsertQueryWithId(entitySpec))
+                .beginControlFlow("try (var stmt = conn.prepareStatement(\"$L\"))", buildInsertQueryWithId(entitySpec))
                 .addStatement("prepareInsert(entity, stmt)")
                 .addStatement("stmt.executeUpdate()")
                 .endControlFlow()
@@ -528,7 +528,7 @@ public class DbClassGenerator {
                 .addException(SQLException.class)
                 .addStatement("var ids = new ArrayList<$T>()", idType)
                 .beginControlFlow(
-                        "try (var stmt = conn.prepareStatement($S, $T.RETURN_GENERATED_KEYS))",
+                        "try (var stmt = conn.prepareStatement(\"$L\", $T.RETURN_GENERATED_KEYS))",
                         buildInsertQueryWithoutId(entitySpec),
                         Statement.class)
                 .beginControlFlow("for (var entity : entities)")
@@ -552,7 +552,7 @@ public class DbClassGenerator {
                 .addParameter(listType(entityType), "entities")
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
-                .beginControlFlow("try (var stmt = conn.prepareStatement($S))", buildInsertQueryWithId(entitySpec))
+                .beginControlFlow("try (var stmt = conn.prepareStatement(\"$L\"))", buildInsertQueryWithId(entitySpec))
                 .beginControlFlow("for (var entity : entities)")
                 .addStatement("prepareInsert(entity, stmt)")
                 .addStatement("stmt.addBatch()")
