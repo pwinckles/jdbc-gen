@@ -10,6 +10,19 @@ import com.google.common.base.CaseFormat;
 import com.pwinckles.jdbcgen.BasePatch;
 import com.pwinckles.jdbcgen.JdbcGenDb;
 import com.pwinckles.jdbcgen.OrderDirection;
+import com.pwinckles.jdbcgen.filter.BooleanPredicateBuilder;
+import com.pwinckles.jdbcgen.filter.ConjunctionBuilder;
+import com.pwinckles.jdbcgen.filter.DoublePredicateBuilder;
+import com.pwinckles.jdbcgen.filter.Filter;
+import com.pwinckles.jdbcgen.filter.FilterBuilderHelper;
+import com.pwinckles.jdbcgen.filter.FloatPredicateBuilder;
+import com.pwinckles.jdbcgen.filter.Group;
+import com.pwinckles.jdbcgen.filter.IntPredicateBuilder;
+import com.pwinckles.jdbcgen.filter.LongPredicateBuilder;
+import com.pwinckles.jdbcgen.filter.ObjectPredicateBuilder;
+import com.pwinckles.jdbcgen.filter.PrimitiveBooleanPredicateBuilder;
+import com.pwinckles.jdbcgen.filter.ShortPredicateBuilder;
+import com.pwinckles.jdbcgen.filter.StringPredicateBuilder;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
@@ -28,6 +41,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.processing.Generated;
 import javax.lang.model.type.ArrayType;
@@ -51,6 +66,8 @@ public class DbClassGenerator {
                         entitySpec.getIdentityField().getFieldElement().asType())
                 .box();
         var patchType = ClassName.get(entitySpec.getPackageName(), entitySpec.getDbClassName(), "Patch");
+        var filterBuilderType =
+                ClassName.get(entitySpec.getPackageName(), entitySpec.getDbClassName(), "FilterBuilder");
         var columnType = ClassName.get(entitySpec.getPackageName(), entitySpec.getDbClassName(), "Column");
 
         var builder = TypeSpec.classBuilder(entitySpec.getDbClassName())
@@ -67,6 +84,7 @@ public class DbClassGenerator {
 
         builder.addType(genColumnsEnum(entityType, entitySpec))
                 .addType(genPatchClass(entityType, patchType, idType, entitySpec))
+                .addType(genFilterBuilderClass(entityType, filterBuilderType, entitySpec))
                 .addMethod(genSelect(idType, entitySpec))
                 .addMethod(genSelectAll(entityType, entitySpec))
                 .addMethod(genSelectAllOrdered(entityType, columnType, entitySpec))
@@ -153,6 +171,76 @@ public class DbClassGenerator {
                     .addStatement("return this")
                     .build());
         });
+
+        return builder.build();
+    }
+
+    private TypeSpec genFilterBuilderClass(TypeName entityType, TypeName filterBuilderType, EntitySpec entitySpec) {
+        var builder = TypeSpec.classBuilder("FilterBuilder")
+                .addModifiers(PUBLIC, STATIC)
+                .addAnnotation(generatedAnnotation())
+                .addJavadoc("Constructs a SQL WHERE clause.", entityType)
+                .addField(Filter.class, "filter", PRIVATE, FINAL)
+                .addField(
+                        ParameterizedTypeName.get(ClassName.get(FilterBuilderHelper.class), filterBuilderType),
+                        "helper",
+                        PRIVATE,
+                        FINAL)
+                .addMethod(MethodSpec.constructorBuilder()
+                        .addModifiers(PUBLIC)
+                        .addParameter(Filter.class, "filter")
+                        .addStatement(
+                                "this.filter = $T.requireNonNull(filter, \"filter cannot be null\")", Objects.class)
+                        .addStatement("this.helper = new $T<>(filter, this)", FilterBuilderHelper.class)
+                        .build());
+
+        entitySpec.getFields().forEach(fieldSpec -> {
+            var predicateBuilderType = mapFieldTypeToPredicateBuilderType(
+                    fieldSpec.getFieldElement().asType(), filterBuilderType);
+            if (predicateBuilderType != null) {
+                builder.addMethod(MethodSpec.methodBuilder(fieldSpec.getFieldName())
+                        .addJavadoc("Add a predicate on $L.\n", fieldSpec.getFieldName())
+                        .addJavadoc("\n")
+                        .addJavadoc("@return the builder to use to specify the field predicate")
+                        .addModifiers(PUBLIC)
+                        .returns(predicateBuilderType)
+                        .addStatement(
+                                "return new $T<>(\"$L\", filter, helper)",
+                                predicateBuilderType.rawType,
+                                fieldSpec.getColumnName())
+                        .build());
+            }
+        });
+
+        builder.addMethod(MethodSpec.methodBuilder("group")
+                .addJavadoc("Groups series of predicates inside parentheses.\n")
+                .addJavadoc("\n")
+                .addJavadoc("@param filterBuilder the builder to use to construct the grouped predicates\n")
+                .addJavadoc("@return the builder continuation after the grouping")
+                .addModifiers(PUBLIC)
+                .returns(ParameterizedTypeName.get(ClassName.get(ConjunctionBuilder.class), filterBuilderType))
+                .addParameter(
+                        ParameterizedTypeName.get(ClassName.get(Consumer.class), filterBuilderType), "filterBuilder")
+                .addStatement("var groupFilter = new $T()", Filter.class)
+                .addStatement("filterBuilder.accept(new $T(groupFilter))", filterBuilderType)
+                .addStatement("filter.add($T.group(groupFilter))", Group.class)
+                .addStatement("return helper.conjunctionBuilder()")
+                .build());
+
+        builder.addMethod(MethodSpec.methodBuilder("notGroup")
+                .addJavadoc("Groups series of predicates inside parentheses, and negates the group.\n")
+                .addJavadoc("\n")
+                .addJavadoc("@param filterBuilder the builder to use to construct the grouped predicates\n")
+                .addJavadoc("@return the builder continuation after the grouping")
+                .addModifiers(PUBLIC)
+                .returns(ParameterizedTypeName.get(ClassName.get(ConjunctionBuilder.class), filterBuilderType))
+                .addParameter(
+                        ParameterizedTypeName.get(ClassName.get(Consumer.class), filterBuilderType), "filterBuilder")
+                .addStatement("var groupFilter = new $T()", Filter.class)
+                .addStatement("filterBuilder.accept(new $T(groupFilter))", filterBuilderType)
+                .addStatement("filter.add($T.notGroup(groupFilter))", Group.class)
+                .addStatement("return helper.conjunctionBuilder()")
+                .build());
 
         return builder.build();
     }
@@ -797,5 +885,41 @@ public class DbClassGenerator {
     private String buildDeleteQuery(EntitySpec entitySpec) {
         return "DELETE FROM " + entitySpec.getTableName() + " WHERE "
                 + entitySpec.getIdentityField().getColumnName() + " = ?";
+    }
+
+    private ParameterizedTypeName mapFieldTypeToPredicateBuilderType(TypeMirror fieldType, TypeName filterBuilderType) {
+        if (fieldType.getKind().isPrimitive()) {
+            switch (fieldType.getKind()) {
+                case LONG:
+                    return ParameterizedTypeName.get(ClassName.get(LongPredicateBuilder.class), filterBuilderType);
+                case INT:
+                    return ParameterizedTypeName.get(ClassName.get(IntPredicateBuilder.class), filterBuilderType);
+                case SHORT:
+                    return ParameterizedTypeName.get(ClassName.get(ShortPredicateBuilder.class), filterBuilderType);
+                case BOOLEAN:
+                    return ParameterizedTypeName.get(
+                            ClassName.get(PrimitiveBooleanPredicateBuilder.class), filterBuilderType);
+                case DOUBLE:
+                    return ParameterizedTypeName.get(ClassName.get(DoublePredicateBuilder.class), filterBuilderType);
+                case FLOAT:
+                    return ParameterizedTypeName.get(ClassName.get(FloatPredicateBuilder.class), filterBuilderType);
+                case BYTE:
+                case ARRAY:
+                default:
+                    // We don't support filtering on these types
+                    return null;
+            }
+        } else {
+            var fieldTypeName = TypeName.get(fieldType);
+
+            if (fieldTypeName.equals(TypeName.get(String.class))) {
+                return ParameterizedTypeName.get(ClassName.get(StringPredicateBuilder.class), filterBuilderType);
+            } else if (fieldTypeName.equals(TypeName.get(Boolean.class))) {
+                return ParameterizedTypeName.get(ClassName.get(BooleanPredicateBuilder.class), filterBuilderType);
+            } else {
+                return ParameterizedTypeName.get(
+                        ClassName.get(ObjectPredicateBuilder.class), filterBuilderType, fieldTypeName);
+            }
+        }
     }
 }
