@@ -3,8 +3,6 @@ package com.pwinckles.jdbcgen.filter;
 // TODO javadoc
 public class LongPredicateBuilder<B> extends CollectionPredicateBuilder<B, Long> {
 
-    // TODO add the other primitives
-
     private final String field;
     private final Filter filter;
     private final FilterBuilderHelper<B> helper;
