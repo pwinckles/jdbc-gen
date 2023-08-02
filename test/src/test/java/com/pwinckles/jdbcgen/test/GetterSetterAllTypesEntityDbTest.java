@@ -126,15 +126,208 @@ public class GetterSetterAllTypesEntityDbTest
             selected = db.select(
                     fb -> fb.string().isNotLike("test-%").or().string().isNull(), conn);
             assertEntities(listWithout(entities, 2, 6, 9), selected);
+
+            selected = db.select(fb -> fb.string().isGreaterThanOrEqualTo("w"), conn);
+            assertEntities(listWith(entities, 7, 8), selected);
         }
     }
 
-    // TODO boolean
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void selectFilteredByBoolean(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var entities = List.of(
+                    newEntityWithId().setBoolPrim(true).setBoolObj(true), // 0
+                    newEntityWithId().setBoolPrim(true).setBoolObj(true), // 1
+                    newEntityWithId().setBoolPrim(false).setBoolObj(false), // 2
+                    newEntityWithId().setBoolPrim(true).setBoolObj(true), // 3
+                    newEntityWithId().setBoolPrim(false).setBoolObj(false), // 4
+                    newEntityWithId().setBoolPrim(true).setBoolObj(null), // 5
+                    newEntityWithId().setBoolPrim(false).setBoolObj(null) // 6
+                    );
+
+            db.insert(entities, conn);
+
+            var selected = db.select(fb -> fb.boolPrim().isTrue(), conn);
+            assertEntities(listWith(entities, 0, 1, 3, 5), selected);
+
+            selected = db.select(fb -> fb.boolObj().isTrue(), conn);
+            assertEntities(listWith(entities, 0, 1, 3), selected);
+
+            selected = db.select(fb -> fb.boolPrim().isFalse(), conn);
+            assertEntities(listWith(entities, 2, 4, 6), selected);
+
+            selected = db.select(fb -> fb.boolObj().isFalse(), conn);
+            assertEntities(listWith(entities, 2, 4), selected);
+
+            selected = db.select(fb -> fb.boolObj().isNull(), conn);
+            assertEntities(listWith(entities, 5, 6), selected);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void selectFilteredByLong(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var entities = List.of(
+                    newEntityWithId().setLongPrim(1L), // 0
+                    newEntityWithId().setLongPrim(10L), // 1
+                    newEntityWithId().setLongPrim(2L), // 2
+                    newEntityWithId().setLongPrim(5L), // 3
+                    newEntityWithId().setLongPrim(2L), // 4
+                    newEntityWithId().setLongPrim(100L), // 5
+                    newEntityWithId().setLongPrim(1000L), // 6
+                    newEntityWithId().setLongPrim(50L), // 7
+                    newEntityWithId().setLongPrim(75L), // 8
+                    newEntityWithId().setLongPrim(-10L), // 9
+                    newEntityWithId().setLongPrim(-1L), // 10
+                    newEntityWithId().setLongPrim(100L) // 11
+                    );
+
+            db.insert(entities, conn);
+
+            var selected = db.select(fb -> fb.longPrim().isEqualTo(2L), conn);
+            assertEntities(listWith(entities, 2, 4), selected);
+
+            selected = db.select(fb -> fb.longPrim().isLessThanOrEqualTo(5L), conn);
+            assertEntities(listWith(entities, 0, 2, 3, 4, 9, 10), selected);
+
+            selected = db.select(fb -> fb.longPrim().isLessThan(5L), conn);
+            assertEntities(listWith(entities, 0, 2, 4, 9, 10), selected);
+
+            selected = db.select(fb -> fb.longPrim().isGreaterThanOrEqualTo(100L), conn);
+            assertEntities(listWith(entities, 5, 6, 11), selected);
+
+            selected = db.select(fb -> fb.longPrim().isGreaterThan(100L), conn);
+            assertEntities(listWith(entities, 6), selected);
+
+            selected = db.select(fb -> fb.longPrim().isNotEqualTo(2L), conn);
+            assertEntities(listWithout(entities, 2, 4), selected);
+
+            selected = db.select(fb -> fb.longPrim().isIn(List.of(1L, 3L, 5L, 7L, 9L)), conn);
+            assertEntities(listWith(entities, 0, 3), selected);
+
+            selected = db.select(fb -> fb.longPrim().isNotIn(List.of(10L, 100L, 1000L)), conn);
+            assertEntities(listWithout(entities, 1, 5, 6, 11), selected);
+
+            selected =
+                    db.select(fb -> fb.longPrim().isEqualTo(10L).or().longPrim().isEqualTo(-10L), conn);
+            assertEntities(listWith(entities, 1, 9), selected);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void selectFilteredByInt(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var entities = List.of(
+                    newEntityWithId().setIntPrim(1), // 0
+                    newEntityWithId().setIntPrim(10), // 1
+                    newEntityWithId().setIntPrim(2), // 2
+                    newEntityWithId().setIntPrim(5), // 3
+                    newEntityWithId().setIntPrim(2), // 4
+                    newEntityWithId().setIntPrim(100), // 5
+                    newEntityWithId().setIntPrim(1000), // 6
+                    newEntityWithId().setIntPrim(50), // 7
+                    newEntityWithId().setIntPrim(75), // 8
+                    newEntityWithId().setIntPrim(-10), // 9
+                    newEntityWithId().setIntPrim(-1), // 10
+                    newEntityWithId().setIntPrim(100) // 11
+                    );
+
+            db.insert(entities, conn);
+
+            var selected = db.select(fb -> fb.intPrim().isEqualTo(2), conn);
+            assertEntities(listWith(entities, 2, 4), selected);
+
+            selected = db.select(fb -> fb.intPrim().isLessThanOrEqualTo(5), conn);
+            assertEntities(listWith(entities, 0, 2, 3, 4, 9, 10), selected);
+
+            selected = db.select(fb -> fb.intPrim().isLessThan(5), conn);
+            assertEntities(listWith(entities, 0, 2, 4, 9, 10), selected);
+
+            selected = db.select(fb -> fb.intPrim().isGreaterThanOrEqualTo(100), conn);
+            assertEntities(listWith(entities, 5, 6, 11), selected);
+
+            selected = db.select(fb -> fb.intPrim().isGreaterThan(100), conn);
+            assertEntities(listWith(entities, 6), selected);
+
+            selected = db.select(fb -> fb.intPrim().isNotEqualTo(2), conn);
+            assertEntities(listWithout(entities, 2, 4), selected);
+
+            selected = db.select(fb -> fb.intPrim().isIn(List.of(1, 3, 5, 7, 9)), conn);
+            assertEntities(listWith(entities, 0, 3), selected);
+
+            selected = db.select(fb -> fb.intPrim().isNotIn(List.of(10, 100, 1000)), conn);
+            assertEntities(listWithout(entities, 1, 5, 6, 11), selected);
+
+            selected = db.select(fb -> fb.intPrim().isEqualTo(10).or().intPrim().isEqualTo(-10), conn);
+            assertEntities(listWith(entities, 1, 9), selected);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void selectFilteredByShort(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var entities = List.of(
+                    newEntityWithId().setShortPrim((short) 1), // 0
+                    newEntityWithId().setShortPrim((short) 10), // 1
+                    newEntityWithId().setShortPrim((short) 2), // 2
+                    newEntityWithId().setShortPrim((short) 5), // 3
+                    newEntityWithId().setShortPrim((short) 2), // 4
+                    newEntityWithId().setShortPrim((short) 100), // 5
+                    newEntityWithId().setShortPrim((short) 1000), // 6
+                    newEntityWithId().setShortPrim((short) 50), // 7
+                    newEntityWithId().setShortPrim((short) 75), // 8
+                    newEntityWithId().setShortPrim((short) -10), // 9
+                    newEntityWithId().setShortPrim((short) -1), // 10
+                    newEntityWithId().setShortPrim((short) 100) // 11
+                    );
+
+            db.insert(entities, conn);
+
+            var selected = db.select(fb -> fb.shortPrim().isEqualTo((short) 2), conn);
+            assertEntities(listWith(entities, 2, 4), selected);
+
+            selected = db.select(fb -> fb.shortPrim().isLessThanOrEqualTo((short) 5), conn);
+            assertEntities(listWith(entities, 0, 2, 3, 4, 9, 10), selected);
+
+            selected = db.select(fb -> fb.shortPrim().isLessThan((short) 5), conn);
+            assertEntities(listWith(entities, 0, 2, 4, 9, 10), selected);
+
+            selected = db.select(fb -> fb.shortPrim().isGreaterThanOrEqualTo((short) 100), conn);
+            assertEntities(listWith(entities, 5, 6, 11), selected);
+
+            selected = db.select(fb -> fb.shortPrim().isGreaterThan((short) 100), conn);
+            assertEntities(listWith(entities, 6), selected);
+
+            selected = db.select(fb -> fb.shortPrim().isNotEqualTo((short) 2), conn);
+            assertEntities(listWithout(entities, 2, 4), selected);
+
+            selected = db.select(
+                    fb -> fb.shortPrim().isIn(List.of((short) 1, (short) 3, (short) 5, (short) 7, (short) 9)), conn);
+            assertEntities(listWith(entities, 0, 3), selected);
+
+            selected = db.select(fb -> fb.shortPrim().isNotIn(List.of((short) 10, (short) 100, (short) 1000)), conn);
+            assertEntities(listWithout(entities, 1, 5, 6, 11), selected);
+
+            selected = db.select(
+                    fb -> fb.shortPrim().isEqualTo((short) 10).or().shortPrim().isEqualTo((short) -10), conn);
+            assertEntities(listWith(entities, 1, 9), selected);
+        }
+    }
+
     // TODO double
     // TODO float
-    // TODO int
-    // TODO long
-    // TODO short
     // TODO uuid
     // TODO date/time
     // TODO complex filter (group)
