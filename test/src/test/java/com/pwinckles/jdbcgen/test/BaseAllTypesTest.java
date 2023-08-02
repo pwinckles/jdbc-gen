@@ -5,9 +5,9 @@ import com.pwinckles.jdbcgen.JdbcGenDb;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public abstract class BaseAllTypesTest<E, I, P extends BasePatch, C> extends TestBase<E, I, P, C> {
+public abstract class BaseAllTypesTest<E, I, P extends BasePatch, C, F> extends TestBase<E, I, P, C, F> {
 
-    protected BaseAllTypesTest(JdbcGenDb<E, I, P, C> db) {
+    protected BaseAllTypesTest(JdbcGenDb<E, I, P, C, F> db) {
         super(db);
     }
 

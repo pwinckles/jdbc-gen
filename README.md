@@ -128,9 +128,10 @@ example, `@JdbcGen(name = "MyExampleDao")` would produce a class named `MyExampl
 
 In the future, support may be added for the following features:
 
-1. Enums as a field type
-2. `SELECT` query paging
-3. `WHERE` clause filtering
-4. Flat table joins (aggregates will never be supported)
+1. `WHERE` clause filtering
+2. Rework sorting
+3. Joins
+4. Enums as a field type
 5. Record support
-6. Inheritance?
+6. `SELECT` query paging
+7. Inheritance?

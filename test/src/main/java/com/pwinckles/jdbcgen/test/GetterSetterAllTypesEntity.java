@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.UUID;
 
 @JdbcGen
@@ -266,5 +267,29 @@ public class GetterSetterAllTypesEntity implements Cloneable {
         clone.byteArray = byteArray;
         clone.uuid = uuid;
         return clone;
+    }
+
+    @Override
+    public String toString() {
+        return "GetterSetterAllTypesEntity{" + "longId="
+                + longId + ", longPrim="
+                + longPrim + ", intObj="
+                + intObj + ", intPrim="
+                + intPrim + ", shortObj="
+                + shortObj + ", shortPrim="
+                + shortPrim + ", doubleObj="
+                + doubleObj + ", doublePrim="
+                + doublePrim + ", boolObj="
+                + boolObj + ", boolPrim="
+                + boolPrim + ", string='"
+                + string + '\'' + ", instant="
+                + instant + ", localDateTime="
+                + localDateTime + ", localDate="
+                + localDate + ", offsetDateTime="
+                + offsetDateTime + ", date="
+                + date + ", timestamp="
+                + timestamp + ", byteArray="
+                + Arrays.toString(byteArray) + ", uuid="
+                + uuid + '}';
     }
 }

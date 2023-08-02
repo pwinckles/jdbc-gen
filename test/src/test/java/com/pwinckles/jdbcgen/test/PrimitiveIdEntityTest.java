@@ -7,7 +7,12 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class PrimitiveIdEntityTest
-        extends TestBase<PrimitiveIdEntity, Long, PrimitiveIdEntityDb.Patch, PrimitiveIdEntityDb.Column> {
+        extends TestBase<
+                PrimitiveIdEntity,
+                Long,
+                PrimitiveIdEntityDb.Patch,
+                PrimitiveIdEntityDb.Column,
+                PrimitiveIdEntityDb.FilterBuilder> {
 
     protected PrimitiveIdEntityTest() {
         super(new PrimitiveIdEntityDb());

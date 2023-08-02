@@ -10,7 +10,9 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-public class UuidIdEntityTest extends TestBase<UuidIdEntity, UUID, UuidIdEntityDb.Patch, UuidIdEntityDb.Column> {
+public class UuidIdEntityTest
+        extends TestBase<
+                UuidIdEntity, UUID, UuidIdEntityDb.Patch, UuidIdEntityDb.Column, UuidIdEntityDb.FilterBuilder> {
 
     // Need to do this so the uuids are ordered
     private final Iterator<UUID> uuids = Stream.generate(UUID::randomUUID)

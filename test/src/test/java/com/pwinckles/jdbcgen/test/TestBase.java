@@ -16,7 +16,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public abstract class TestBase<E, I, P extends BasePatch, C> {
+public abstract class TestBase<E, I, P extends BasePatch, C, F> {
 
     protected static Stream<Arguments> dbs() throws SQLException {
         return Stream.of(
@@ -25,9 +25,9 @@ public abstract class TestBase<E, I, P extends BasePatch, C> {
     }
 
     private long serial = 1234L;
-    protected JdbcGenDb<E, I, P, C> db;
+    protected JdbcGenDb<E, I, P, C, F> db;
 
-    protected TestBase(JdbcGenDb<E, I, P, C> db) {
+    protected TestBase(JdbcGenDb<E, I, P, C, F> db) {
         this.db = db;
     }
 

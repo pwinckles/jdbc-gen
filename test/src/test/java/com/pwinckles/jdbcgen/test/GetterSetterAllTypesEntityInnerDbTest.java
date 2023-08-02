@@ -23,7 +23,8 @@ public class GetterSetterAllTypesEntityInnerDbTest
                 Wrapper.GetterSetterAllTypesEntity,
                 Long,
                 GetterSetterAllTypesEntityInnerDb.Patch,
-                GetterSetterAllTypesEntityInnerDb.Column> {
+                GetterSetterAllTypesEntityInnerDb.Column,
+                GetterSetterAllTypesEntityInnerDb.FilterBuilder> {
 
     public GetterSetterAllTypesEntityInnerDbTest() {
         super(new GetterSetterAllTypesEntityInnerDb());

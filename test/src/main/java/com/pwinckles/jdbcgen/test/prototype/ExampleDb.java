@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, ExampleDb.Column> {
+public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, ExampleDb.Column, ExampleFilterBuilder> {
 
     public enum Column {
         ID("id"),
@@ -89,13 +89,12 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         return results;
     }
 
-    public List<Example> selectAllFiltered(Connection conn, Consumer<ExampleFilterBuilder> filterer)
-            throws SQLException {
-        // TODO
+    @Override
+    public List<Example> select(Consumer<ExampleFilterBuilder> filterBuilder, Connection conn) throws SQLException {
         var results = new ArrayList<Example>();
 
         var filter = new Filter();
-        filterer.accept(new ExampleFilterBuilder(filter));
+        filterBuilder.accept(new ExampleFilterBuilder(filter));
 
         var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp FROM example");
         filter.buildQuery(queryBuilder);
@@ -140,6 +139,25 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
                 return rs.getLong(1);
             }
         }
+        return 0;
+    }
+
+    @Override
+    public long count(Consumer<ExampleFilterBuilder> filterBuilder, Connection conn) throws SQLException {
+        var filter = new Filter();
+        filterBuilder.accept(new ExampleFilterBuilder(filter));
+
+        var queryBuilder = new StringBuilder("SELECT COUNT(id) FROM example");
+        filter.buildQuery(queryBuilder);
+
+        try (var stmt = conn.prepareStatement(queryBuilder.toString())) {
+            filter.addArguments(1, stmt);
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getLong(1);
+            }
+        }
+
         return 0;
     }
 
@@ -362,6 +380,20 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
                 stmt.addBatch();
             }
             return stmt.executeBatch();
+        }
+    }
+
+    @Override
+    public int delete(Consumer<ExampleFilterBuilder> filterBuilder, Connection conn) throws SQLException {
+        var filter = new Filter();
+        filterBuilder.accept(new ExampleFilterBuilder(filter));
+
+        var queryBuilder = new StringBuilder("DELETE FROM example");
+        filter.buildQuery(queryBuilder);
+
+        try (var stmt = conn.prepareStatement(queryBuilder.toString())) {
+            filter.addArguments(1, stmt);
+            return stmt.executeUpdate();
         }
     }
 

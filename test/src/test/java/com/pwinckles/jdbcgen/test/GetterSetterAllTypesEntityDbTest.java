@@ -23,7 +23,8 @@ public class GetterSetterAllTypesEntityDbTest
                 GetterSetterAllTypesEntity,
                 Long,
                 GetterSetterAllTypesEntityDb.Patch,
-                GetterSetterAllTypesEntityDb.Column> {
+                GetterSetterAllTypesEntityDb.Column,
+                GetterSetterAllTypesEntityDb.FilterBuilder> {
 
     public GetterSetterAllTypesEntityDbTest() {
         super(new GetterSetterAllTypesEntityDb());
@@ -58,6 +59,85 @@ public class GetterSetterAllTypesEntityDbTest
             assertEntities(originals, results);
         }
     }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void selectFilteredByString(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var entities = List.of(
+                    newEntityWithId().setString("a"), // 0
+                    newEntityWithId().setString("example"), // 1
+                    newEntityWithId().setString("test-1"), // 2
+                    newEntityWithId().setString("TEST-1"), // 3
+                    newEntityWithId().setString("TEST-1"), // 4
+                    newEntityWithId().setString("m"), // 5
+                    newEntityWithId().setString("test-2"), // 6
+                    newEntityWithId().setString("z"), // 7
+                    newEntityWithId().setString("w"), // 8
+                    newEntityWithId().setString("test-3"), // 9
+                    newEntityWithId().setString(null), // 10
+                    newEntityWithId().setString(null) // 11
+                    );
+
+            db.insert(entities, conn);
+
+            var selected = db.select(fb -> fb.string().isLike("test-%"), conn);
+            assertEntities(listWith(entities, 2, 6, 9), selected);
+
+            selected = db.select(fb -> fb.string().isLikeInsensitive("TesT-%"), conn);
+            assertEntities(listWith(entities, 2, 3, 4, 6, 9), selected);
+
+            selected = db.select(fb -> fb.string().isNotLike("test-%"), conn);
+            assertEntities(listWithout(entities, 2, 6, 9, 10, 11), selected);
+
+            selected = db.select(fb -> fb.string().isNotLikeInsensitive("tESt-%"), conn);
+            assertEntities(listWithout(entities, 2, 3, 4, 6, 9, 10, 11), selected);
+
+            selected = db.select(fb -> fb.string().isEqualTo("TEST-1"), conn);
+            assertEntities(listWith(entities, 3, 4), selected);
+
+            selected = db.select(fb -> fb.string().isEqualToInsensitive("TEST-1"), conn);
+            assertEntities(listWith(entities, 2, 3, 4), selected);
+
+            selected = db.select(fb -> fb.string().isNotEqualTo("example"), conn);
+            assertEntities(listWithout(entities, 1, 10, 11), selected);
+
+            selected = db.select(fb -> fb.string().isNotEqualToInsensitive("EXAMPLE"), conn);
+            assertEntities(listWithout(entities, 1, 10, 11), selected);
+
+            selected = db.select(fb -> fb.string().isNull(), conn);
+            assertEntities(listWith(entities, 10, 11), selected);
+
+            selected = db.select(fb -> fb.string().isNotNull(), conn);
+            assertEntities(listWithout(entities, 10, 11), selected);
+
+            selected = db.select(fb -> fb.string().isIn(List.of("a", "z")), conn);
+            assertEntities(listWith(entities, 0, 7), selected);
+
+            selected = db.select(fb -> fb.string().isNotIn(List.of("a", "w", "z")), conn);
+            assertEntities(listWithout(entities, 0, 7, 8, 10, 11), selected);
+
+            selected = db.select(
+                    fb -> fb.string().isIn(List.of("a", "z")).or().string().isEqualTo("example"), conn);
+            assertEntities(listWith(entities, 0, 1, 7), selected);
+
+            selected = db.select(
+                    fb -> fb.string().isNotLike("test-%").or().string().isNull(), conn);
+            assertEntities(listWithout(entities, 2, 6, 9), selected);
+        }
+    }
+
+    // TODO boolean
+    // TODO double
+    // TODO float
+    // TODO int
+    // TODO long
+    // TODO short
+    // TODO uuid
+    // TODO date/time
+    // TODO complex filter (group)
 
     @Override
     protected Long getId(GetterSetterAllTypesEntity entity) {
@@ -205,5 +285,22 @@ public class GetterSetterAllTypesEntityDbTest
                 .setIntPrim(entity.getIntPrim())
                 .setShortPrim(entity.getShortPrim())
                 .setLongPrim(entity.getLongPrim());
+    }
+
+    private List<GetterSetterAllTypesEntity> listWith(List<GetterSetterAllTypesEntity> original, int... indicesToKeep) {
+        var copy = new ArrayList<GetterSetterAllTypesEntity>(indicesToKeep.length);
+        for (var i : indicesToKeep) {
+            copy.add(original.get(i));
+        }
+        return copy;
+    }
+
+    private List<GetterSetterAllTypesEntity> listWithout(
+            List<GetterSetterAllTypesEntity> original, int... indicesToRemove) {
+        var copy = new ArrayList<>(original);
+        for (int i = 0; i < indicesToRemove.length; i++) {
+            copy.remove(indicesToRemove[i] - i);
+        }
+        return copy;
     }
 }

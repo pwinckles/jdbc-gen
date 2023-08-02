@@ -44,4 +44,18 @@ public class StringPredicateBuilder<B> extends ObjectPredicateBuilder<B, String>
         filter.add(new Predicate(field, Operation.NOT_LIKE_INSENSITIVE, value));
         return helper.conjunctionBuilder();
     }
+
+    // TODO javadoc
+    public ConjunctionBuilder<B> isEqualToInsensitive(String value) {
+        Objects.requireNonNull(value, "value cannot be null");
+        filter.add(new Predicate(field, Operation.EQUAL_INSENSITIVE, value));
+        return helper.conjunctionBuilder();
+    }
+
+    // TODO javadoc
+    public ConjunctionBuilder<B> isNotEqualToInsensitive(String value) {
+        Objects.requireNonNull(value, "value cannot be null");
+        filter.add(new Predicate(field, Operation.NOT_EQUAL_INSENSITIVE, value));
+        return helper.conjunctionBuilder();
+    }
 }

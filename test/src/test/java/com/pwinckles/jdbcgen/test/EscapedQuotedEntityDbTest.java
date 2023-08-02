@@ -19,7 +19,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class EscapedQuotedEntityDbTest
-        extends TestBase<QuotedEntity, Long, QuotedEntityDb.Patch, QuotedEntityDb.Column> {
+        extends TestBase<
+                QuotedEntity, Long, QuotedEntityDb.Patch, QuotedEntityDb.Column, QuotedEntityDb.FilterBuilder> {
 
     public EscapedQuotedEntityDbTest() {
         super(new QuotedEntityDb());
