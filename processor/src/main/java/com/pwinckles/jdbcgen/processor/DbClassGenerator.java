@@ -72,7 +72,7 @@ public class DbClassGenerator {
 
         var builder = TypeSpec.classBuilder(entitySpec.getDbClassName())
                 .addSuperinterface(ParameterizedTypeName.get(
-                        ClassName.get(JdbcGenDb.class), entityType, idType, patchType, columnType))
+                        ClassName.get(JdbcGenDb.class), entityType, idType, patchType, columnType, filterBuilderType))
                 .addAnnotation(generatedAnnotation())
                 .addJavadoc("Provides basic DB access for {@link $T} entities.", entityType);
 
@@ -85,10 +85,12 @@ public class DbClassGenerator {
         builder.addType(genColumnsEnum(entityType, entitySpec))
                 .addType(genPatchClass(entityType, patchType, idType, entitySpec))
                 .addType(genFilterBuilderClass(entityType, filterBuilderType, entitySpec))
-                .addMethod(genSelect(idType, entitySpec))
+                .addMethod(genSelect(entityType, idType, entitySpec))
+                .addMethod(genSelectFiltered(entityType, filterBuilderType, entitySpec))
                 .addMethod(genSelectAll(entityType, entitySpec))
                 .addMethod(genSelectAllOrdered(entityType, columnType, entitySpec))
                 .addMethod(genCount(entitySpec))
+                .addMethod(genCountFiltered(filterBuilderType, entitySpec))
                 .addMethod(genInsert(entityType, idType, entitySpec))
                 .addMethod(genInsertPatch(patchType, idType, entitySpec))
                 .addMethod(genInsertList(entityType, idType, entitySpec))
@@ -97,6 +99,7 @@ public class DbClassGenerator {
                 .addMethod(genUpdateList(entityType, entitySpec))
                 .addMethod(genDelete(idType, entitySpec))
                 .addMethod(genDeleteList(idType, entitySpec))
+                .addMethod(genDeleteFiltered(filterBuilderType, entitySpec))
                 .addMethod(genDeleteAll(entitySpec))
                 .addMethod(genInsertWithSpecifiedId(entityType, idType, entitySpec))
                 .addMethod(genInsertListWithSpecifiedId(entityType, idType, entitySpec))
@@ -245,7 +248,7 @@ public class DbClassGenerator {
         return builder.build();
     }
 
-    private MethodSpec genSelect(TypeName idType, EntitySpec entitySpec) {
+    private MethodSpec genSelect(TypeName entityType, TypeName idType, EntitySpec entitySpec) {
         var query = "SELECT " + columnNames(entitySpec)
                 + " FROM " + entitySpec.getTableName()
                 + " WHERE " + entitySpec.getIdentityField().getColumnName() + " = ? LIMIT 1";
@@ -253,7 +256,7 @@ public class DbClassGenerator {
                 .addJavadoc("{@inheritDoc}")
                 .addAnnotation(Override.class)
                 .addModifiers(PUBLIC)
-                .returns(TypeName.get(entitySpec.getTypeElement().asType()))
+                .returns(entityType)
                 .addParameter(idType, "id")
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
@@ -265,6 +268,37 @@ public class DbClassGenerator {
                 .endControlFlow()
                 .endControlFlow()
                 .addStatement("return null")
+                .build();
+    }
+
+    private MethodSpec genSelectFiltered(TypeName entityType, TypeName filterBuilderType, EntitySpec entitySpec) {
+        var query = "SELECT " + columnNames(entitySpec) + " FROM " + entitySpec.getTableName();
+        return MethodSpec.methodBuilder("select")
+                .addJavadoc("{@inheritDoc}")
+                .addAnnotation(Override.class)
+                .addModifiers(PUBLIC)
+                .returns(listType(entityType))
+                .addParameter(
+                        ParameterizedTypeName.get(ClassName.get(Consumer.class), filterBuilderType), "filterBuilder")
+                .addParameter(Connection.class, "conn")
+                .addException(SQLException.class)
+                .addStatement("var results = new $T<$T>()", ArrayList.class, entityType)
+                .addCode("\n")
+                .addStatement("var filter = new $T()", Filter.class)
+                .addStatement("filterBuilder.accept(new $T(filter))", filterBuilderType)
+                .addCode("\n")
+                .addStatement("var queryBuilder = new $T(\"$L\")", StringBuilder.class, query)
+                .addStatement("filter.buildQuery(queryBuilder)")
+                .addCode("\n")
+                .beginControlFlow("try (var stmt = conn.prepareStatement(queryBuilder.toString()))")
+                .addStatement("filter.addArguments(1, stmt)")
+                .addStatement("var rs = stmt.executeQuery()")
+                .beginControlFlow("while (rs.next())")
+                .addStatement("results.add(fromResultSet(rs))")
+                .endControlFlow()
+                .endControlFlow()
+                .addCode("\n")
+                .addStatement("return results")
                 .build();
     }
 
@@ -327,6 +361,36 @@ public class DbClassGenerator {
                 .addStatement("return rs.getLong(1)")
                 .endControlFlow()
                 .endControlFlow()
+                .addStatement("return 0")
+                .build();
+    }
+
+    private MethodSpec genCountFiltered(TypeName filterBuilderType, EntitySpec entitySpec) {
+        var query =
+                "SELECT COUNT(" + entitySpec.getIdentityField().getColumnName() + ") FROM " + entitySpec.getTableName();
+        return MethodSpec.methodBuilder("count")
+                .addJavadoc("{@inheritDoc}")
+                .addAnnotation(Override.class)
+                .addModifiers(PUBLIC)
+                .returns(long.class)
+                .addParameter(
+                        ParameterizedTypeName.get(ClassName.get(Consumer.class), filterBuilderType), "filterBuilder")
+                .addParameter(Connection.class, "conn")
+                .addException(SQLException.class)
+                .addStatement("var filter = new $T()", Filter.class)
+                .addStatement("filterBuilder.accept(new $T(filter))", filterBuilderType)
+                .addCode("\n")
+                .addStatement("var queryBuilder = new $T(\"$L\")", StringBuilder.class, query)
+                .addStatement("filter.buildQuery(queryBuilder)")
+                .addCode("\n")
+                .beginControlFlow("try (var stmt = conn.prepareStatement(queryBuilder.toString()))")
+                .addStatement("filter.addArguments(1, stmt)")
+                .addStatement("var rs = stmt.executeQuery()")
+                .beginControlFlow("if (rs.next())")
+                .addStatement("return rs.getLong(1)")
+                .endControlFlow()
+                .endControlFlow()
+                .addCode("\n")
                 .addStatement("return 0")
                 .build();
     }
@@ -551,6 +615,30 @@ public class DbClassGenerator {
                 .addStatement("stmt.addBatch()")
                 .endControlFlow()
                 .addStatement("return stmt.executeBatch()")
+                .endControlFlow()
+                .build();
+    }
+
+    private MethodSpec genDeleteFiltered(TypeName filterBuilderType, EntitySpec entitySpec) {
+        return MethodSpec.methodBuilder("delete")
+                .addJavadoc("{@inheritDoc}")
+                .addAnnotation(Override.class)
+                .addModifiers(PUBLIC)
+                .returns(int.class)
+                .addParameter(
+                        ParameterizedTypeName.get(ClassName.get(Consumer.class), filterBuilderType), "filterBuilder")
+                .addParameter(Connection.class, "conn")
+                .addException(SQLException.class)
+                .addStatement("var filter = new $T()", Filter.class)
+                .addStatement("filterBuilder.accept(new $T(filter))", filterBuilderType)
+                .addCode("\n")
+                .addStatement(
+                        "var queryBuilder = new $T(\"DELETE FROM $L\")", StringBuilder.class, entitySpec.getTableName())
+                .addStatement("filter.buildQuery(queryBuilder)")
+                .addCode("\n")
+                .beginControlFlow("try (var stmt = conn.prepareStatement(queryBuilder.toString()))")
+                .addStatement("filter.addArguments(1, stmt)")
+                .addStatement("return stmt.executeUpdate()")
                 .endControlFlow()
                 .build();
     }

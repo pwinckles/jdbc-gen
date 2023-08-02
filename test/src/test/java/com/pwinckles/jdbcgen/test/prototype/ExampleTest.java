@@ -161,21 +161,22 @@ public class ExampleTest {
 
             exampleDb.insert(originals, conn);
 
-            var results = exampleDb.selectAllFiltered(
-                    conn, fb -> fb.name().isEqualTo("b").or().count().isGreaterThan(10));
+            var results =
+                    exampleDb.select(fb -> fb.name().isEqualTo("b").or().count().isGreaterThan(10), conn);
             assertEntities(List.of(originals.get(1), originals.get(2)), results);
 
-            results = exampleDb.selectAllFiltered(conn, fb -> fb.group(
-                            gb -> gb.name().isEqualTo("a").and().count().isEqualTo(10))
-                    .or()
-                    .name()
-                    .isEqualTo("c"));
+            results = exampleDb.select(
+                    fb -> fb.group(gb -> gb.name().isEqualTo("a").and().count().isEqualTo(10))
+                            .or()
+                            .name()
+                            .isEqualTo("c"),
+                    conn);
             assertEntities(List.of(originals.get(1)), results);
 
-            results = exampleDb.selectAllFiltered(conn, fb -> fb.name().isIn(List.of("a", "d")));
+            results = exampleDb.select(fb -> fb.name().isIn(List.of("a", "d")), conn);
             assertEntities(List.of(originals.get(0), originals.get(3)), results);
 
-            results = exampleDb.selectAllFiltered(conn, fb -> fb.count().isNotIn(List.of(10L, 20L, 30L, 100L)));
+            results = exampleDb.select(fb -> fb.count().isNotIn(List.of(10L, 20L, 30L, 100L)), conn);
             assertEntities(List.of(originals.get(2), originals.get(3)), results);
         }
     }

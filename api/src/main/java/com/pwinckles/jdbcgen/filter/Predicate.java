@@ -22,7 +22,10 @@ class Predicate implements FilterPart {
      */
     @Override
     public void buildQuery(StringBuilder queryBuilder) {
-        if (operation == Operation.LIKE_INSENSITIVE || operation == Operation.NOT_LIKE_INSENSITIVE) {
+        if (operation == Operation.LIKE_INSENSITIVE
+                || operation == Operation.NOT_LIKE_INSENSITIVE
+                || operation == Operation.EQUAL_INSENSITIVE
+                || operation == Operation.NOT_EQUAL_INSENSITIVE) {
             queryBuilder
                     .append("LOWER(")
                     .append(field)

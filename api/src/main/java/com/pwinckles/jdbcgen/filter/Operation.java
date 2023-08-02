@@ -4,6 +4,8 @@ package com.pwinckles.jdbcgen.filter;
 enum Operation {
     EQUAL("="),
     NOT_EQUAL("!="),
+    EQUAL_INSENSITIVE("="),
+    NOT_EQUAL_INSENSITIVE("!="),
     GREATER_THAN(">"),
     LESS_THAN("<"),
     GREATER_THAN_OR_EQUAL(">="),

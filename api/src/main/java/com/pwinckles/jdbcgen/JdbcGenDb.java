@@ -3,6 +3,7 @@ package com.pwinckles.jdbcgen;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Implementations of this interface provide basic DB access using plain JDBC. Implementations are generated at
@@ -12,8 +13,9 @@ import java.util.List;
  * @param <I> The type of the entity's ID
  * @param <P> The type of entity's patch class, this is a generated class
  * @param <C> The type of the entity's column enum, this is a generated class
+ * @param <F> The type of the filter builder, this is a generated class
  */
-public interface JdbcGenDb<E, I, P extends BasePatch, C> {
+public interface JdbcGenDb<E, I, P extends BasePatch, C, F> {
 
     /**
      * Selects a single entity from the DB by its ID. Null is returned if the entity is not found.
@@ -24,6 +26,17 @@ public interface JdbcGenDb<E, I, P extends BasePatch, C> {
      * @throws SQLException
      */
     E select(I id, Connection conn) throws SQLException;
+
+    /**
+     * Selects all of the entities that match the specified filter. If there are none, then an empty list is returned.
+     * The results are not explicitly ordered.
+     *
+     * @param filterBuilder construct a filter to constrain the results
+     * @param conn the JDBC connection
+     * @return a list of entities or an empty list
+     * @throws SQLException
+     */
+    List<E> select(Consumer<F> filterBuilder, Connection conn) throws SQLException;
 
     /**
      * Selects all of the entities. If there are none, then an empty list is returned. The results are not explicitly
@@ -55,6 +68,16 @@ public interface JdbcGenDb<E, I, P extends BasePatch, C> {
      * @throws SQLException
      */
     long count(Connection conn) throws SQLException;
+
+    /**
+     * Counts the number of entities.
+     *
+     * @param filterBuilder construct a filter to constrain the count
+     * @param conn the JDBC connection
+     * @return the number of entities
+     * @throws SQLException
+     */
+    long count(Consumer<F> filterBuilder, Connection conn) throws SQLException;
 
     /**
      * Inserts a new entity into the DB, and returns the entity's ID. This method populates every column that's defined
@@ -141,6 +164,16 @@ public interface JdbcGenDb<E, I, P extends BasePatch, C> {
      * @throws SQLException
      */
     int[] delete(List<I> ids, Connection conn) throws SQLException;
+
+    /**
+     * Deletes all of the entities that match the specified filter.
+     *
+     * @param filterBuilder construct a filter to constrain the delete
+     * @param conn the JDBC connection
+     * @return an array representing the number of affected rows from each query
+     * @throws SQLException
+     */
+    int delete(Consumer<F> filterBuilder, Connection conn) throws SQLException;
 
     /**
      * Deletes all of the entities in the DB.

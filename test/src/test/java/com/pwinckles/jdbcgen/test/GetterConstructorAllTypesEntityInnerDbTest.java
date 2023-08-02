@@ -15,7 +15,8 @@ public class GetterConstructorAllTypesEntityInnerDbTest
                 Wrapper.GetterConstructorAllTypesEntity,
                 Long,
                 GetterConstructorAllTypesEntityInnerDb.Patch,
-                GetterConstructorAllTypesEntityInnerDb.Column> {
+                GetterConstructorAllTypesEntityInnerDb.Column,
+                GetterConstructorAllTypesEntityInnerDb.FilterBuilder> {
 
     public GetterConstructorAllTypesEntityInnerDbTest() {
         super(new GetterConstructorAllTypesEntityInnerDb());

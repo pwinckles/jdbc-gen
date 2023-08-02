@@ -18,7 +18,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class QuotedEntityDbTest extends TestBase<QuotedEntity, Long, QuotedEntityDb.Patch, QuotedEntityDb.Column> {
+public class QuotedEntityDbTest
+        extends TestBase<
+                QuotedEntity, Long, QuotedEntityDb.Patch, QuotedEntityDb.Column, QuotedEntityDb.FilterBuilder> {
 
     public QuotedEntityDbTest() {
         super(new QuotedEntityDb());

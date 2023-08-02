@@ -12,7 +12,11 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public class DirectAllTypesEntityDbTest
         extends BaseAllTypesTest<
-                DirectAllTypesEntity, Long, DirectAllTypesEntityDb.Patch, DirectAllTypesEntityDb.Column> {
+                DirectAllTypesEntity,
+                Long,
+                DirectAllTypesEntityDb.Patch,
+                DirectAllTypesEntityDb.Column,
+                DirectAllTypesEntityDb.FilterBuilder> {
 
     public DirectAllTypesEntityDbTest() {
         super(new DirectAllTypesEntityDb());
