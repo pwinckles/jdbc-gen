@@ -1,5 +1,7 @@
 package com.pwinckles.jdbcgen.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.pwinckles.jdbcgen.OrderDirection;
 import com.pwinckles.jdbcgen.test.util.TestUtil;
 import java.sql.Connection;
@@ -129,6 +131,9 @@ public class GetterSetterAllTypesEntityDbTest
 
             selected = db.select(fb -> fb.string().isGreaterThanOrEqualTo("w"), conn);
             assertEntities(listWith(entities, 7, 8), selected);
+
+            selected = db.select(fb -> fb.string().isEqualTo("blahblah"), conn);
+            assertThat(selected).isEmpty();
         }
     }
 
@@ -326,11 +331,265 @@ public class GetterSetterAllTypesEntityDbTest
         }
     }
 
-    // TODO double
-    // TODO float
-    // TODO uuid
-    // TODO date/time
-    // TODO complex filter (group)
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void selectFilteredByDouble(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var entities = List.of(
+                    newEntityWithId().setDoublePrim(1.5), // 0
+                    newEntityWithId().setDoublePrim(10.1), // 1
+                    newEntityWithId().setDoublePrim(2.0), // 2
+                    newEntityWithId().setDoublePrim(5.6), // 3
+                    newEntityWithId().setDoublePrim(2.12), // 4
+                    newEntityWithId().setDoublePrim(100.01), // 5
+                    newEntityWithId().setDoublePrim(1000.123), // 6
+                    newEntityWithId().setDoublePrim(50.9), // 7
+                    newEntityWithId().setDoublePrim(75.0), // 8
+                    newEntityWithId().setDoublePrim(-10.1), // 9
+                    newEntityWithId().setDoublePrim(-1.01), // 10
+                    newEntityWithId().setDoublePrim(100.00) // 11
+                    );
+
+            db.insert(entities, conn);
+
+            var selected = db.select(fb -> fb.doublePrim().isEqualTo(2), conn);
+            assertEntities(listWith(entities, 2), selected);
+
+            selected = db.select(fb -> fb.doublePrim().isLessThanOrEqualTo(5.6), conn);
+            assertEntities(listWith(entities, 0, 2, 3, 4, 9, 10), selected);
+
+            selected = db.select(fb -> fb.doublePrim().isLessThan(5.6), conn);
+            assertEntities(listWith(entities, 0, 2, 4, 9, 10), selected);
+
+            selected = db.select(fb -> fb.doublePrim().isGreaterThanOrEqualTo(100.01), conn);
+            assertEntities(listWith(entities, 5, 6), selected);
+
+            selected = db.select(fb -> fb.doublePrim().isGreaterThan(100.01), conn);
+            assertEntities(listWith(entities, 6), selected);
+
+            selected = db.select(fb -> fb.doublePrim().isNotEqualTo(2), conn);
+            assertEntities(listWithout(entities, 2), selected);
+
+            selected = db.select(fb -> fb.doublePrim().isIn(List.of(1.5, 3.1, 5.6, 7.2, 9.3)), conn);
+            assertEntities(listWith(entities, 0, 3), selected);
+
+            selected = db.select(fb -> fb.doublePrim().isNotIn(List.of(10.1, 100.01, 1000.123)), conn);
+            assertEntities(listWithout(entities, 1, 5, 6), selected);
+
+            selected = db.select(
+                    fb -> fb.doublePrim().isEqualTo(10.1).or().doublePrim().isEqualTo(-10.1), conn);
+            assertEntities(listWith(entities, 1, 9), selected);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void selectFilteredByUuid(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var uuid1 = UUID.randomUUID();
+            var uuid2 = UUID.randomUUID();
+            var uuid3 = UUID.randomUUID();
+            var uuid4 = UUID.randomUUID();
+            var uuid5 = UUID.randomUUID();
+
+            var entities = List.of(
+                    newEntityWithId().setUuid(uuid1), // 0
+                    newEntityWithId().setUuid(uuid2), // 1
+                    newEntityWithId().setUuid(uuid1), // 2
+                    newEntityWithId().setUuid(uuid3), // 3
+                    newEntityWithId().setUuid(uuid1), // 4
+                    newEntityWithId().setUuid(uuid4), // 5
+                    newEntityWithId().setUuid(uuid2), // 6
+                    newEntityWithId().setUuid(uuid5), // 7
+                    newEntityWithId().setUuid(null) // 8
+                    );
+
+            db.insert(entities, conn);
+
+            var selected = db.select(fb -> fb.uuid().isEqualTo(uuid2), conn);
+            assertEntities(listWith(entities, 1, 6), selected);
+
+            selected = db.select(fb -> fb.uuid().isNotEqualTo(uuid1), conn);
+            assertEntities(listWithout(entities, 0, 2, 4, 8), selected);
+
+            selected = db.select(fb -> fb.uuid().isNull(), conn);
+            assertEntities(listWith(entities, 8), selected);
+
+            selected = db.select(fb -> fb.uuid().isNotNull(), conn);
+            assertEntities(listWithout(entities, 8), selected);
+
+            selected = db.select(fb -> fb.uuid().isIn(List.of(uuid3, uuid4)), conn);
+            assertEntities(listWith(entities, 3, 5), selected);
+
+            selected = db.select(fb -> fb.uuid().isNotIn(List.of(uuid3, uuid4)), conn);
+            assertEntities(listWithout(entities, 3, 5, 8), selected);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void selectFilteredByTime(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var time1 = TestUtil.nowLocalDateTime();
+            var time2 = TestUtil.nowLocalDateTime().minusMinutes(10);
+            var time3 = TestUtil.nowLocalDateTime().minusDays(7);
+            var time4 = TestUtil.nowLocalDateTime().minusHours(12);
+            var time5 = TestUtil.nowLocalDateTime().minusMonths(2);
+
+            var entities = List.of(
+                    newEntityWithId().setLocalDateTime(time1), // 0
+                    newEntityWithId().setLocalDateTime(time2), // 1
+                    newEntityWithId().setLocalDateTime(time1), // 2
+                    newEntityWithId().setLocalDateTime(time3), // 3
+                    newEntityWithId().setLocalDateTime(time1), // 4
+                    newEntityWithId().setLocalDateTime(time4), // 5
+                    newEntityWithId().setLocalDateTime(time2), // 6
+                    newEntityWithId().setLocalDateTime(time5), // 7
+                    newEntityWithId().setLocalDateTime(null) // 8
+                    );
+
+            db.insert(entities, conn);
+
+            var selected = db.select(fb -> fb.localDateTime().isEqualTo(time2), conn);
+            assertEntities(listWith(entities, 1, 6), selected);
+
+            selected = db.select(fb -> fb.localDateTime().isNotEqualTo(time2), conn);
+            assertEntities(listWithout(entities, 1, 6, 8), selected);
+
+            selected = db.select(fb -> fb.localDateTime().isGreaterThan(time4), conn);
+            assertEntities(listWith(entities, 0, 1, 2, 4, 6), selected);
+
+            selected = db.select(fb -> fb.localDateTime().isGreaterThanOrEqualTo(time4), conn);
+            assertEntities(listWith(entities, 0, 1, 2, 4, 5, 6), selected);
+
+            selected = db.select(fb -> fb.localDateTime().isLessThan(time4), conn);
+            assertEntities(listWith(entities, 3, 7), selected);
+
+            selected = db.select(fb -> fb.localDateTime().isLessThanOrEqualTo(time4), conn);
+            assertEntities(listWith(entities, 3, 5, 7), selected);
+
+            selected = db.select(fb -> fb.localDateTime().isNull(), conn);
+            assertEntities(listWith(entities, 8), selected);
+
+            selected = db.select(fb -> fb.localDateTime().isNotNull(), conn);
+            assertEntities(listWithout(entities, 8), selected);
+
+            selected =
+                    db.select(fb -> fb.localDateTime().isIn(List.of(time1, time5, TestUtil.nowLocalDateTime())), conn);
+            assertEntities(listWith(entities, 0, 2, 4, 7), selected);
+
+            selected = db.select(
+                    fb -> fb.localDateTime().isNotIn(List.of(time1, time5, TestUtil.nowLocalDateTime())), conn);
+            assertEntities(listWithout(entities, 0, 2, 4, 7, 8), selected);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void selectFilteredComplex(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var uuid1 = UUID.randomUUID();
+            var uuid2 = UUID.randomUUID();
+            var uuid3 = UUID.randomUUID();
+            var uuid4 = UUID.randomUUID();
+            var uuid5 = UUID.randomUUID();
+
+            var time1 = TestUtil.nowLocalDateTime();
+            var time2 = TestUtil.nowLocalDateTime().minusMinutes(10);
+            var time3 = TestUtil.nowLocalDateTime().minusDays(7);
+            var time4 = TestUtil.nowLocalDateTime().minusHours(12);
+            var time5 = TestUtil.nowLocalDateTime().minusMonths(2);
+
+            var entities = List.of(
+                    newEntityWithId()
+                            .setString("one")
+                            .setIntPrim(1)
+                            .setUuid(uuid1)
+                            .setLocalDateTime(null), // 0
+                    newEntityWithId()
+                            .setString("five")
+                            .setIntPrim(2)
+                            .setUuid(uuid2)
+                            .setLocalDateTime(time3), // 1
+                    newEntityWithId()
+                            .setString("two")
+                            .setIntPrim(3)
+                            .setUuid(uuid1)
+                            .setLocalDateTime(time2), // 2
+                    newEntityWithId()
+                            .setString("two")
+                            .setIntPrim(4)
+                            .setUuid(uuid3)
+                            .setLocalDateTime(time4), // 3
+                    newEntityWithId()
+                            .setString("two")
+                            .setIntPrim(1)
+                            .setUuid(uuid1)
+                            .setLocalDateTime(time1), // 4
+                    newEntityWithId()
+                            .setString(null)
+                            .setIntPrim(2)
+                            .setUuid(uuid4)
+                            .setLocalDateTime(time2), // 5
+                    newEntityWithId()
+                            .setString("three")
+                            .setIntPrim(3)
+                            .setUuid(uuid2)
+                            .setLocalDateTime(null), // 6
+                    newEntityWithId()
+                            .setString("one")
+                            .setIntPrim(3)
+                            .setUuid(uuid5)
+                            .setLocalDateTime(time5), // 7
+                    newEntityWithId()
+                            .setString("four")
+                            .setIntPrim(3)
+                            .setUuid(null)
+                            .setLocalDateTime(time1) // 8
+                    );
+
+            db.insert(entities, conn);
+
+            var selected =
+                    db.select(fb -> fb.uuid().isEqualTo(uuid1).and().string().isEqualTo("two"), conn);
+            assertEntities(listWith(entities, 2, 4), selected);
+
+            selected = db.select(
+                    fb -> fb.localDateTime()
+                            .isNull()
+                            .and()
+                            .group(gb ->
+                                    gb.intPrim().isGreaterThan(1).or().string().isEqualTo("four")),
+                    conn);
+            assertEntities(listWith(entities, 6), selected);
+
+            selected = db.select(
+                    fb -> fb.group(gb ->
+                                    gb.intPrim().isGreaterThan(2).and().uuid().isNotIn(List.of(uuid3, uuid1)))
+                            .or()
+                            .localDateTime()
+                            .isLessThan(TestUtil.nowLocalDateTime().minusHours(13)),
+                    conn);
+            assertEntities(listWith(entities, 1, 6, 7), selected);
+
+            selected = db.select(
+                    fb -> fb.notGroup(gb ->
+                                    gb.string().isEqualTo("two").or().intPrim().isEqualTo(2))
+                            .and()
+                            .localDateTime()
+                            .isGreaterThan(time2),
+                    conn);
+            assertEntities(listWith(entities, 8), selected);
+        }
+    }
 
     @Override
     protected Long getId(GetterSetterAllTypesEntity entity) {
