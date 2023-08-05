@@ -7,7 +7,11 @@ public class PrimitiveBooleanPredicateBuilder<B> {
     private final Filter filter;
     private final FilterBuilderHelper<B> helper;
 
-    // TODO javadoc
+    /**
+     * @param field the name of the column to filter on in the db
+     * @param filter the filter to add the predicate to
+     * @param helper the entity's filter builder helper
+     */
     public PrimitiveBooleanPredicateBuilder(String field, Filter filter, FilterBuilderHelper<B> helper) {
         this.field = field;
         this.filter = filter;

@@ -1,6 +1,8 @@
 package com.pwinckles.jdbcgen.filter;
 
-// TODO javadoc
+/**
+ * A conjunction that joins two filter predicates.
+ */
 enum Conjunction implements FilterPart {
     AND,
     OR;

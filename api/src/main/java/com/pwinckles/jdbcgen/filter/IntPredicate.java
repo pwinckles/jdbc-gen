@@ -3,14 +3,12 @@ package com.pwinckles.jdbcgen.filter;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-// TODO javadoc
 class IntPredicate implements FilterPart {
 
     private final String field;
     private final Operation operation;
     private final int value;
 
-    // TODO javadoc
     public IntPredicate(String field, Operation operation, int value) {
         this.field = field;
         this.operation = operation;
