@@ -1,6 +1,10 @@
 package com.pwinckles.jdbcgen.filter;
 
-// TODO javadoc
+/**
+ * Constructs a predicate for a primitive long value.
+ *
+ * @param <B> the entity's filter builder type
+ */
 public class LongPredicateBuilder<B> extends CollectionPredicateBuilder<B, Long> {
 
     private final String field;

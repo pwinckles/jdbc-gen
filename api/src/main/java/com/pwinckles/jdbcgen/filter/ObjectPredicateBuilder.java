@@ -2,7 +2,12 @@ package com.pwinckles.jdbcgen.filter;
 
 import java.util.Objects;
 
-// TODO javadoc
+/**
+ * Constructs a predicate for a non-primitive value.
+ *
+ * @param <B> the entity's filter builder type
+ * @param <T> the value's type
+ */
 public class ObjectPredicateBuilder<B, T> extends CollectionPredicateBuilder<B, T> {
 
     private final String field;
@@ -91,12 +96,20 @@ public class ObjectPredicateBuilder<B, T> extends CollectionPredicateBuilder<B, 
         return helper.conjunctionBuilder();
     }
 
-    // TODO javadoc
+    /**
+     * Adds a predicate that matches values that are null.
+     *
+     * @return conjunction builder
+     */
     public ConjunctionBuilder<B> isNull() {
         return isEqualTo(null);
     }
 
-    // TODO javadoc
+    /**
+     * Adds a predicate that matches values that are not null.
+     *
+     * @return conjunction builder
+     */
     public ConjunctionBuilder<B> isNotNull() {
         return isNotEqualTo(null);
     }

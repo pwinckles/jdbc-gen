@@ -5,24 +5,20 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
-// TODO javadoc
 class InListPredicate implements FilterPart {
 
     private final String field;
     private final List<Object> values;
     private final boolean negate;
 
-    // TODO javadoc
     public static InListPredicate inList(String field, List<Object> values) {
         return new InListPredicate(field, values, false);
     }
 
-    // TODO javadoc
     public static InListPredicate notInList(String field, List<Object> values) {
         return new InListPredicate(field, values, true);
     }
 
-    // TODO javadoc
     private InListPredicate(String field, List<Object> values, boolean negate) {
         this.field = Objects.requireNonNull(field, "field cannot be null");
         this.values = Objects.requireNonNull(values, "values cannot be null");

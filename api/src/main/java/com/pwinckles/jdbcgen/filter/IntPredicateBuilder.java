@@ -1,6 +1,10 @@
 package com.pwinckles.jdbcgen.filter;
 
-// TODO javadoc
+/**
+ * Constructs a predicate for a primitive int value.
+ *
+ * @param <B> the entity's filter builder type
+ */
 public class IntPredicateBuilder<B> extends CollectionPredicateBuilder<B, Integer> {
 
     private final String field;

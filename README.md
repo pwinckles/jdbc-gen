@@ -113,6 +113,12 @@ exampleDb.update(id, new ExambleDb.Patch().setValue("updated"), conn);
 // select all entities, ordered by a specific column
 var examples = exampleDb.selectAll(ExampleDb.Column.VALUE, OrderDirection.ASCENDING, conn);
 
+// select all entities that match a filter
+var filtered = exambleDb.select(entity -> entity
+        .value().isEqualTo("test")
+        .and()
+        .timestamp().isGreaterThan(Instant.now().minusWeeks(1)), conn);
+
 // delete an entity
 exampleDb.delete(id, conn);
 ```
@@ -128,10 +134,9 @@ example, `@JdbcGen(name = "MyExampleDao")` would produce a class named `MyExampl
 
 In the future, support may be added for the following features:
 
-1. `WHERE` clause filtering
-2. Rework sorting
-3. Joins
-4. Enums as a field type
-5. Record support
-6. `SELECT` query paging
-7. Inheritance?
+1. Rework sorting
+2. Joins
+3. Enums as a field type
+4. Record support
+5. `SELECT` query paging
+6. Inheritance?

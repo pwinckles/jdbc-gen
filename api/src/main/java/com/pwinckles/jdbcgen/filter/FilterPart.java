@@ -6,7 +6,7 @@ import java.sql.SQLException;
 /**
  * Part of a filter that can be transformed into SQL and add positional arguments as appropriate.
  */
-interface FilterPart {
+public interface FilterPart {
 
     /**
      * Appends a SQL representation of the filter part to the queryBuilder

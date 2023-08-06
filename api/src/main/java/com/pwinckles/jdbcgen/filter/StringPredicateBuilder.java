@@ -2,7 +2,11 @@ package com.pwinckles.jdbcgen.filter;
 
 import java.util.Objects;
 
-// TODO javadoc
+/**
+ * Constructs a predicate for a String value.
+ *
+ * @param <B> the entity's filter builder type
+ */
 public class StringPredicateBuilder<B> extends ObjectPredicateBuilder<B, String> {
 
     private final String field;
@@ -21,42 +25,72 @@ public class StringPredicateBuilder<B> extends ObjectPredicateBuilder<B, String>
         this.helper = helper;
     }
 
-    // TODO javadoc
+    /**
+     * Adds a predicate that matches values using a SQL 'LIKE' comparison. Use '%' as a wildcard.
+     *
+     * @param value the value to compare
+     * @return conjunction builder
+     */
     public ConjunctionBuilder<B> isLike(String value) {
         Objects.requireNonNull(value, "value cannot be null");
         filter.add(new Predicate(field, Operation.LIKE, value));
         return helper.conjunctionBuilder();
     }
 
-    // TODO javadoc
+    /**
+     * Adds a predicate that matches values using a SQL 'NOT LIKE' comparison. Use '%' as a wildcard.
+     *
+     * @param value the value to compare
+     * @return conjunction builder
+     */
     public ConjunctionBuilder<B> isNotLike(String value) {
         Objects.requireNonNull(value, "value cannot be null");
         filter.add(new Predicate(field, Operation.NOT_LIKE, value));
         return helper.conjunctionBuilder();
     }
 
-    // TODO javadoc
+    /**
+     * Adds a predicate that matches values using a SQL 'LIKE' comparison, ignoring case. Use a '%' as a wildcard.
+     *
+     * @param value the value to compare
+     * @return conjunction builder
+     */
     public ConjunctionBuilder<B> isLikeInsensitive(String value) {
         Objects.requireNonNull(value, "value cannot be null");
         filter.add(new Predicate(field, Operation.LIKE_INSENSITIVE, value));
         return helper.conjunctionBuilder();
     }
 
-    // TODO javadoc
+    /**
+     * Adds a predicate that matches values using a SQL 'NOT LIKE' comparison, ignoring case. Use a '%' as a wildcard.
+     *
+     * @param value the value to compare
+     * @return conjunction builder
+     */
     public ConjunctionBuilder<B> isNotLikeInsensitive(String value) {
         Objects.requireNonNull(value, "value cannot be null");
         filter.add(new Predicate(field, Operation.NOT_LIKE_INSENSITIVE, value));
         return helper.conjunctionBuilder();
     }
 
-    // TODO javadoc
+    /**
+     * Adds a predicate that does a case-insensitive equality comparison.
+     *
+     * @param value the value to compare
+     * @return conjunction builder
+     */
     public ConjunctionBuilder<B> isEqualToInsensitive(String value) {
         Objects.requireNonNull(value, "value cannot be null");
         filter.add(new Predicate(field, Operation.EQUAL_INSENSITIVE, value));
         return helper.conjunctionBuilder();
     }
 
-    // TODO javadoc
+    /**
+     * Adds a predicate that does a case-insensitive, not equals comparison.
+     *
+     * @param value the value to compare
+     * @return conjunction builder
+     */
     public ConjunctionBuilder<B> isNotEqualToInsensitive(String value) {
         Objects.requireNonNull(value, "value cannot be null");
         filter.add(new Predicate(field, Operation.NOT_EQUAL_INSENSITIVE, value));

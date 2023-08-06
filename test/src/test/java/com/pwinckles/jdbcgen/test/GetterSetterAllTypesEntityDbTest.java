@@ -1,6 +1,7 @@
 package com.pwinckles.jdbcgen.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.pwinckles.jdbcgen.OrderDirection;
 import com.pwinckles.jdbcgen.test.util.TestUtil;
@@ -588,6 +589,66 @@ public class GetterSetterAllTypesEntityDbTest
                             .isGreaterThan(time2),
                     conn);
             assertEntities(listWith(entities, 8), selected);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void filteredCount(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var entities = List.of(
+                    newEntityWithId().setString("a"), // 0
+                    newEntityWithId().setString("example"), // 1
+                    newEntityWithId().setString("test-1"), // 2
+                    newEntityWithId().setString("TEST-1"), // 3
+                    newEntityWithId().setString("TEST-1"), // 4
+                    newEntityWithId().setString("m"), // 5
+                    newEntityWithId().setString("test-2"), // 6
+                    newEntityWithId().setString("z"), // 7
+                    newEntityWithId().setString("w"), // 8
+                    newEntityWithId().setString("test-3"), // 9
+                    newEntityWithId().setString(null), // 10
+                    newEntityWithId().setString(null) // 11
+                    );
+
+            db.insert(entities, conn);
+
+            var count = db.count(fb -> fb.string().isLike("test-%"), conn);
+            assertEquals(3, count);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void filteredDelete(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var entities = List.of(
+                    newEntityWithId().setString("a"), // 0
+                    newEntityWithId().setString("example"), // 1
+                    newEntityWithId().setString("test-1"), // 2
+                    newEntityWithId().setString("TEST-1"), // 3
+                    newEntityWithId().setString("TEST-1"), // 4
+                    newEntityWithId().setString("m"), // 5
+                    newEntityWithId().setString("test-2"), // 6
+                    newEntityWithId().setString("z"), // 7
+                    newEntityWithId().setString("w"), // 8
+                    newEntityWithId().setString("test-3"), // 9
+                    newEntityWithId().setString(null), // 10
+                    newEntityWithId().setString(null) // 11
+                    );
+
+            db.insert(entities, conn);
+
+            var deleted = db.delete(fb -> fb.string().isLike("test-%"), conn);
+            assertEquals(3, deleted);
+
+            assertDoesNotExist(entities.get(2).getLongId(), conn);
+            assertDoesNotExist(entities.get(6).getLongId(), conn);
+            assertDoesNotExist(entities.get(9).getLongId(), conn);
         }
     }
 

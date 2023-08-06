@@ -1,6 +1,10 @@
 package com.pwinckles.jdbcgen.filter;
 
-// TODO javadoc
+/**
+ * Constructs a predicate for a primitive boolean value.
+ *
+ * @param <B> the entity's filter builder type
+ */
 public class PrimitiveBooleanPredicateBuilder<B> {
 
     private final String field;
@@ -18,13 +22,21 @@ public class PrimitiveBooleanPredicateBuilder<B> {
         this.helper = helper;
     }
 
-    // TODO javadoc
+    /**
+     * Adds a predicate that filters for true values
+     *
+     * @return conjunction builder
+     */
     public ConjunctionBuilder<B> isTrue() {
         filter.add(new Predicate(field, Operation.EQUAL, true));
         return helper.conjunctionBuilder();
     }
 
-    // TODO javadoc
+    /**
+     * Adds a predicate that filters for false values
+     *
+     * @return conjunction builder
+     */
     public ConjunctionBuilder<B> isFalse() {
         filter.add(new Predicate(field, Operation.EQUAL, false));
         return helper.conjunctionBuilder();

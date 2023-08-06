@@ -1,6 +1,10 @@
 package com.pwinckles.jdbcgen.filter;
 
-// TODO javadoc
+/**
+ * Constructs a predicate for a primitive short value.
+ *
+ * @param <B> the entity's filter builder type
+ */
 public class ShortPredicateBuilder<B> extends CollectionPredicateBuilder<B, Short> {
 
     private final String field;

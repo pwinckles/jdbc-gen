@@ -1,6 +1,8 @@
 package com.pwinckles.jdbcgen.filter;
 
-// TODO javadoc
+/**
+ * A predicate's comparison operation
+ */
 enum Operation {
     EQUAL("="),
     NOT_EQUAL("!="),
@@ -21,6 +23,9 @@ enum Operation {
         this.symbol = symbol;
     }
 
+    /**
+     * @return the SQL representation of the operation
+     */
     public String getSymbol() {
         return symbol;
     }

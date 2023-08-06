@@ -5,18 +5,31 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
-// TODO javadoc
+/**
+ * Represents a grouping of filter predicates. This is represented in SQL with parenthesis.
+ */
 public class Group implements FilterPart {
 
     private final boolean negate;
     private final List<FilterPart> filterParts;
 
-    // TODO javadoc
+    /**
+     * Creates a new group that contains the predicates in the specified filter.
+     *
+     * @param filter the filter to insert into the group
+     * @return the group
+     */
     public static Group group(Filter filter) {
         return new Group(filter, false);
     }
 
-    // TODO javadoc
+    /**
+     * Creates a new negated group that contains the predicates in the specified filter. This is represented in SQL
+     * as "NOT (...)".
+     *
+     * @param filter the filter to insert in the group
+     * @return the group
+     */
     public static Group notGroup(Filter filter) {
         return new Group(filter, true);
     }
