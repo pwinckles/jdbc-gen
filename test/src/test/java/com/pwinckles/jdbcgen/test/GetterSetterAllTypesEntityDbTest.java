@@ -94,6 +94,28 @@ public class GetterSetterAllTypesEntityDbTest
 
     @ParameterizedTest
     @MethodSource("dbs")
+    public void selectFilteredAndSorted(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var originals = List.of(
+                    newEntityWithId().setString("c"), // 0
+                    newEntityWithId().setString("a"), // 1
+                    newEntityWithId().setString("b"), // 2
+                    newEntityWithId().setString("b"), // 3
+                    newEntityWithId().setString("b"), // 4
+                    newEntityWithId().setString("a") // 5
+                    );
+
+            db.insert(originals, conn);
+
+            var results = db.select(fb -> fb.string().isEqualTo("b"), sb -> sb.longIdDesc(), conn);
+            assertEntities(List.of(originals.get(4), originals.get(3), originals.get(2)), results);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
     public void selectFilteredByString(Connection conn) throws SQLException {
         try (conn) {
             createTable(conn);

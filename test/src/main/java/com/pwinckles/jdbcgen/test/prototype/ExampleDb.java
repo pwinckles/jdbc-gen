@@ -17,8 +17,6 @@ import java.util.stream.Collectors;
 
 public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, ExampleFilterBuilder, ExampleSortBuilder> {
 
-    // TODO add sort builder to additional methods
-
     public static class Patch extends BasePatch {
 
         public Long getId() {
@@ -87,6 +85,33 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
 
         var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp FROM example");
         filter.buildQuery(queryBuilder);
+
+        try (var stmt = conn.prepareStatement(queryBuilder.toString())) {
+            filter.addArguments(1, stmt);
+            var rs = stmt.executeQuery();
+            while (rs.next()) {
+                results.add(fromResultSet(rs));
+            }
+        }
+
+        return results;
+    }
+
+    @Override
+    public List<Example> select(
+            Consumer<ExampleFilterBuilder> filterBuilder, Consumer<ExampleSortBuilder> sortBuilder, Connection conn)
+            throws SQLException {
+        var results = new ArrayList<Example>();
+
+        var filter = new Filter();
+        filterBuilder.accept(new ExampleFilterBuilder(filter));
+
+        var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp FROM example");
+        filter.buildQuery(queryBuilder);
+
+        var sb = new SortBuilder();
+        sortBuilder.accept(new ExampleSortBuilder(sb));
+        sb.buildQuery(queryBuilder);
 
         try (var stmt = conn.prepareStatement(queryBuilder.toString())) {
             filter.addArguments(1, stmt);

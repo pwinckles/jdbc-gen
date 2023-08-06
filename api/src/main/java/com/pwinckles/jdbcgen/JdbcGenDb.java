@@ -39,6 +39,18 @@ public interface JdbcGenDb<E, I, P extends BasePatch, F, S> {
     List<E> select(Consumer<F> filterBuilder, Connection conn) throws SQLException;
 
     /**
+     * Selects all of the entities that match the specified filter. If there are none, then an empty list is returned.
+     * The results are ordered as specified.
+     *
+     * @param filterBuilder construct a filter to constrain the results
+     * @param sortBuilder specify the columns to sort on
+     * @param conn the JDBC connection
+     * @return a list of entities or an empty list
+     * @throws SQLException
+     */
+    List<E> select(Consumer<F> filterBuilder, Consumer<S> sortBuilder, Connection conn) throws SQLException;
+
+    /**
      * Selects all of the entities. If there are none, then an empty list is returned. The results are not explicitly
      * ordered.
      *
