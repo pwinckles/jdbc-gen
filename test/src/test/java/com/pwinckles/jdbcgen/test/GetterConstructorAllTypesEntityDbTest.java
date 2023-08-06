@@ -48,7 +48,8 @@ public class GetterConstructorAllTypesEntityDbTest
                 entity.getDate(),
                 entity.getTimestamp(),
                 entity.getByteArray(),
-                entity.getUuid());
+                entity.getUuid(),
+                entity.getExampleEnum());
     }
 
     @Override
@@ -72,7 +73,8 @@ public class GetterConstructorAllTypesEntityDbTest
                 new Date(2023, 6, 25),
                 new Timestamp(System.currentTimeMillis()),
                 RandomUtils.nextBytes(10),
-                UUID.randomUUID());
+                UUID.randomUUID(),
+                ExampleEnum.TWO);
     }
 
     @Override
@@ -101,7 +103,8 @@ public class GetterConstructorAllTypesEntityDbTest
                 new Date(2023, 6, 26),
                 new Timestamp(System.currentTimeMillis()),
                 RandomUtils.nextBytes(10),
-                UUID.randomUUID());
+                UUID.randomUUID(),
+                ExampleEnum.THREE);
     }
 
     @Override
@@ -124,7 +127,8 @@ public class GetterConstructorAllTypesEntityDbTest
                 .setDate(entity.getDate())
                 .setTimestamp(entity.getTimestamp())
                 .setByteArray(entity.getByteArray())
-                .setUuid(entity.getUuid());
+                .setUuid(entity.getUuid())
+                .setExampleEnum(entity.getExampleEnum());
     }
 
     @Override
@@ -140,6 +144,7 @@ public class GetterConstructorAllTypesEntityDbTest
                 entity.getDoublePrim(),
                 null,
                 entity.isBoolPrim(),
+                null,
                 null,
                 null,
                 null,
@@ -166,7 +171,8 @@ public class GetterConstructorAllTypesEntityDbTest
                 .setDate(null)
                 .setTimestamp(null)
                 .setByteArray(null)
-                .setUuid(null);
+                .setUuid(null)
+                .setExampleEnum(null);
     }
 
     @Override
@@ -191,7 +197,8 @@ public class GetterConstructorAllTypesEntityDbTest
                 null,
                 entity.getTimestamp(),
                 entity.getByteArray(),
-                UUID.randomUUID());
+                UUID.randomUUID(),
+                entity.getExampleEnum());
 
         return ImmutablePair.of(
                 updated,

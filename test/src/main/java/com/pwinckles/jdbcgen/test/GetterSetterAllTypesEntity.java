@@ -73,6 +73,9 @@ public class GetterSetterAllTypesEntity implements Cloneable {
     @JdbcGenColumn(name = "at_uuid")
     private UUID uuid;
 
+    @JdbcGenColumn(name = "at_enum")
+    private ExampleEnum exampleEnum;
+
     public Long getLongId() {
         return longId;
     }
@@ -244,6 +247,15 @@ public class GetterSetterAllTypesEntity implements Cloneable {
         return this;
     }
 
+    public ExampleEnum getExampleEnum() {
+        return exampleEnum;
+    }
+
+    public GetterSetterAllTypesEntity setExampleEnum(ExampleEnum exampleEnum) {
+        this.exampleEnum = exampleEnum;
+        return this;
+    }
+
     @Override
     public GetterSetterAllTypesEntity clone() {
         var clone = new GetterSetterAllTypesEntity();
@@ -266,6 +278,7 @@ public class GetterSetterAllTypesEntity implements Cloneable {
         clone.timestamp = timestamp;
         clone.byteArray = byteArray;
         clone.uuid = uuid;
+        clone.exampleEnum = exampleEnum;
         return clone;
     }
 
@@ -290,6 +303,7 @@ public class GetterSetterAllTypesEntity implements Cloneable {
                 + date + ", timestamp="
                 + timestamp + ", byteArray="
                 + Arrays.toString(byteArray) + ", uuid="
-                + uuid + '}';
+                + uuid + ", exampleEnum="
+                + exampleEnum + '}';
     }
 }

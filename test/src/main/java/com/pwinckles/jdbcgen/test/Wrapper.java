@@ -74,6 +74,9 @@ class Wrapper {
         @JdbcGenColumn(name = "at_uuid")
         UUID uuid;
 
+        @JdbcGenColumn(name = "at_enum")
+        ExampleEnum exampleEnum;
+
         @Override
         public DirectAllTypesEntity clone() {
             var clone = new DirectAllTypesEntity();
@@ -96,6 +99,7 @@ class Wrapper {
             clone.timestamp = timestamp;
             clone.byteArray = byteArray;
             clone.uuid = uuid;
+            clone.exampleEnum = exampleEnum;
             return clone;
         }
     }
@@ -161,6 +165,9 @@ class Wrapper {
         @JdbcGenColumn(name = "at_uuid")
         private final UUID uuid;
 
+        @JdbcGenColumn(name = "at_enum")
+        private ExampleEnum exampleEnum;
+
         GetterConstructorAllTypesEntity(
                 Long longId,
                 long longPrim,
@@ -180,7 +187,8 @@ class Wrapper {
                 Date date,
                 Timestamp timestamp,
                 byte[] byteArray,
-                UUID uuid) {
+                UUID uuid,
+                ExampleEnum exampleEnum) {
             this.longId = longId;
             this.longPrim = longPrim;
             this.intObj = intObj;
@@ -200,6 +208,7 @@ class Wrapper {
             this.timestamp = timestamp;
             this.byteArray = byteArray;
             this.uuid = uuid;
+            this.exampleEnum = exampleEnum;
         }
 
         Long getLongId() {
@@ -277,6 +286,10 @@ class Wrapper {
         UUID getUuid() {
             return uuid;
         }
+
+        public ExampleEnum getExampleEnum() {
+            return exampleEnum;
+        }
     }
 
     @JdbcGen(name = "GetterSetterAllTypesEntityInnerDb")
@@ -339,6 +352,9 @@ class Wrapper {
 
         @JdbcGenColumn(name = "at_uuid")
         private UUID uuid;
+
+        @JdbcGenColumn(name = "at_enum")
+        private ExampleEnum exampleEnum;
 
         Long getLongId() {
             return longId;
@@ -511,6 +527,15 @@ class Wrapper {
             return this;
         }
 
+        ExampleEnum getExampleEnum() {
+            return exampleEnum;
+        }
+
+        GetterSetterAllTypesEntity setExampleEnum(ExampleEnum exampleEnum) {
+            this.exampleEnum = exampleEnum;
+            return this;
+        }
+
         @Override
         public GetterSetterAllTypesEntity clone() {
             var clone = new GetterSetterAllTypesEntity();
@@ -533,6 +558,7 @@ class Wrapper {
             clone.timestamp = timestamp;
             clone.byteArray = byteArray;
             clone.uuid = uuid;
+            clone.exampleEnum = exampleEnum;
             return clone;
         }
     }

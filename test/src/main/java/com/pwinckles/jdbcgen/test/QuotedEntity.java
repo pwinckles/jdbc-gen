@@ -72,6 +72,9 @@ public class QuotedEntity implements Cloneable {
     @JdbcGenColumn(name = "\"at_uuid\"")
     private UUID uuid;
 
+    @JdbcGenColumn(name = "\"at_enum\"")
+    private ExampleEnum exampleEnum;
+
     public Long getLongId() {
         return longId;
     }
@@ -243,6 +246,15 @@ public class QuotedEntity implements Cloneable {
         return this;
     }
 
+    public ExampleEnum getExampleEnum() {
+        return exampleEnum;
+    }
+
+    public QuotedEntity setExampleEnum(ExampleEnum exampleEnum) {
+        this.exampleEnum = exampleEnum;
+        return this;
+    }
+
     @Override
     public QuotedEntity clone() {
         var clone = new QuotedEntity();
@@ -265,6 +277,7 @@ public class QuotedEntity implements Cloneable {
         clone.timestamp = timestamp;
         clone.byteArray = byteArray;
         clone.uuid = uuid;
+        clone.exampleEnum = exampleEnum;
         return clone;
     }
 }

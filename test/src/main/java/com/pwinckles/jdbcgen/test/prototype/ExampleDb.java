@@ -4,6 +4,7 @@ import com.pwinckles.jdbcgen.BasePatch;
 import com.pwinckles.jdbcgen.JdbcGenDb;
 import com.pwinckles.jdbcgen.filter.Filter;
 import com.pwinckles.jdbcgen.sort.SortBuilder;
+import com.pwinckles.jdbcgen.test.ExampleEnum;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -42,6 +43,11 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
             put("timestamp", timestamp);
             return this;
         }
+
+        public Patch setExampleEnum(ExampleEnum exampleEnum) {
+            put("enum", exampleEnum);
+            return this;
+        }
     }
 
     /**
@@ -49,7 +55,8 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
      */
     @Override
     public Example select(Long id, Connection conn) throws SQLException {
-        try (var stmt = conn.prepareStatement("SELECT id, name, count, timestamp FROM example WHERE id = ? LIMIT 1")) {
+        try (var stmt =
+                conn.prepareStatement("SELECT id, name, count, timestamp, enum FROM example WHERE id = ? LIMIT 1")) {
             stmt.setObject(1, id);
             var rs = stmt.executeQuery();
             if (rs.next()) {
@@ -67,7 +74,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         var results = new ArrayList<Example>();
 
         try (var stmt = conn.createStatement()) {
-            var rs = stmt.executeQuery("SELECT id, name, count, timestamp FROM example");
+            var rs = stmt.executeQuery("SELECT id, name, count, timestamp, enum FROM example");
             while (rs.next()) {
                 results.add(fromResultSet(rs));
             }
@@ -83,7 +90,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         var filter = new Filter();
         filterBuilder.accept(new ExampleFilterBuilder(filter));
 
-        var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp FROM example");
+        var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp, enum FROM example");
         filter.buildQuery(queryBuilder);
 
         try (var stmt = conn.prepareStatement(queryBuilder.toString())) {
@@ -106,7 +113,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         var filter = new Filter();
         filterBuilder.accept(new ExampleFilterBuilder(filter));
 
-        var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp FROM example");
+        var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp, enum FROM example");
         filter.buildQuery(queryBuilder);
 
         var sb = new SortBuilder();
@@ -134,7 +141,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         var sb = new SortBuilder();
         sortBuilder.accept(new ExampleSortBuilder(sb));
 
-        var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp FROM example");
+        var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp, enum FROM example");
         sb.buildQuery(queryBuilder);
 
         try (var stmt = conn.createStatement()) {
@@ -193,7 +200,8 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
 
     private Long insertWithGeneratedId(Example entity, Connection conn) throws SQLException {
         try (var stmt = conn.prepareStatement(
-                "INSERT INTO example (name, count, timestamp) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                "INSERT INTO example (name, count, timestamp, enum) VALUES (?, ?, ?, ?)",
+                Statement.RETURN_GENERATED_KEYS)) {
             prepareInsert(entity, stmt);
             stmt.executeUpdate();
             var rs = stmt.getGeneratedKeys();
@@ -206,7 +214,8 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
     }
 
     private Long insertWithSpecifiedId(Example entity, Connection conn) throws SQLException {
-        try (var stmt = conn.prepareStatement("INSERT INTO example (id, name, count, timestamp) VALUES (?, ?, ?, ?)")) {
+        try (var stmt = conn.prepareStatement(
+                "INSERT INTO example (id, name, count, timestamp, enum) VALUES (?, ?, ?, ?, ?)")) {
             prepareInsert(entity, stmt);
             stmt.executeUpdate();
         }
@@ -287,7 +296,8 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         var ids = new ArrayList<Long>();
 
         try (var stmt = conn.prepareStatement(
-                "INSERT INTO example (name, count, timestamp) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                "INSERT INTO example (name, count, timestamp, enum) VALUES (?, ?, ?, ?)",
+                Statement.RETURN_GENERATED_KEYS)) {
             for (var entity : entities) {
                 prepareInsert(entity, stmt);
                 stmt.addBatch();
@@ -305,7 +315,8 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
     }
 
     private List<Long> insertWithSpecifiedId(List<Example> entities, Connection conn) throws SQLException {
-        try (var stmt = conn.prepareStatement("INSERT INTO example (id, name, count, timestamp) VALUES (?, ?, ?, ?)")) {
+        try (var stmt = conn.prepareStatement(
+                "INSERT INTO example (id, name, count, timestamp, enum) VALUES (?, ?, ?, ?, ?)")) {
             for (var entity : entities) {
                 prepareInsert(entity, stmt);
                 stmt.addBatch();
@@ -322,7 +333,8 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
      */
     @Override
     public int update(Example entity, Connection conn) throws SQLException {
-        try (var stmt = conn.prepareStatement("UPDATE example SET name = ?, count = ?, timestamp = ? WHERE id = ?")) {
+        try (var stmt =
+                conn.prepareStatement("UPDATE example SET name = ?, count = ?, timestamp = ?, enum = ? WHERE id = ?")) {
             prepareUpdate(entity, stmt);
             return stmt.executeUpdate();
         }
@@ -367,7 +379,8 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
      */
     @Override
     public int[] update(List<Example> entities, Connection conn) throws SQLException {
-        try (var stmt = conn.prepareStatement("UPDATE example SET name = ?, count = ?, timestamp = ? WHERE id = ?")) {
+        try (var stmt =
+                conn.prepareStatement("UPDATE example SET name = ?, count = ?, timestamp = ?, enum = ? WHERE id = ?")) {
             for (var entity : entities) {
                 prepareUpdate(entity, stmt);
                 stmt.addBatch();
@@ -433,6 +446,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         entity.setName(getNullableValue(rs, i++, String.class));
         entity.setCount(rs.getLong(i++));
         entity.setTimestamp(getNullableValue(rs, i++, Instant.class));
+        entity.setExampleEnum(enumFromResultSet(rs, i++, ExampleEnum.class));
         return entity;
     }
 
@@ -452,6 +466,7 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         stmt.setObject(i++, entity.getName());
         stmt.setObject(i++, entity.getCount());
         stmt.setObject(i++, entity.getTimestamp());
+        stmt.setObject(i++, enumToString(entity.getExampleEnum()));
     }
 
     private void prepareUpdate(Example entity, PreparedStatement stmt) throws SQLException {
@@ -459,6 +474,22 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
         stmt.setObject(i++, entity.getName());
         stmt.setObject(i++, entity.getCount());
         stmt.setObject(i++, entity.getTimestamp());
+        stmt.setObject(i++, enumToString(entity.getExampleEnum()));
         stmt.setObject(i++, entity.getId());
+    }
+
+    private String enumToString(Enum<?> e) {
+        if (e == null) {
+            return null;
+        }
+        return e.name();
+    }
+
+    private <T extends Enum<T>> T enumFromResultSet(ResultSet rs, int index, Class<T> clazz) throws SQLException {
+        var value = rs.getObject(index, String.class);
+        if (rs.wasNull()) {
+            return null;
+        }
+        return Enum.valueOf(clazz, value);
     }
 }

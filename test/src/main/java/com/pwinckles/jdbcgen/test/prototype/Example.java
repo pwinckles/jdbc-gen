@@ -1,5 +1,6 @@
 package com.pwinckles.jdbcgen.test.prototype;
 
+import com.pwinckles.jdbcgen.test.ExampleEnum;
 import java.time.Instant;
 
 public class Example {
@@ -8,6 +9,7 @@ public class Example {
     private String name;
     private long count;
     private Instant timestamp;
+    private ExampleEnum exampleEnum;
 
     public Long getId() {
         return id;
@@ -45,12 +47,22 @@ public class Example {
         return this;
     }
 
+    public ExampleEnum getExampleEnum() {
+        return exampleEnum;
+    }
+
+    public Example setExampleEnum(ExampleEnum exampleEnum) {
+        this.exampleEnum = exampleEnum;
+        return this;
+    }
+
     @Override
     public String toString() {
         return "Example{" + "id="
                 + id + ", name='"
                 + name + '\'' + ", count="
                 + count + ", timestamp="
-                + timestamp + '}';
+                + timestamp + ", exampleEnum="
+                + exampleEnum + '}';
     }
 }

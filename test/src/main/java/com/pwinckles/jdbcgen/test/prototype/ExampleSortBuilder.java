@@ -50,4 +50,14 @@ public class ExampleSortBuilder {
         sortBuilder.desc("timestamp");
         return this;
     }
+
+    public ExampleSortBuilder exampleEnumAsc() {
+        sortBuilder.asc("enum");
+        return this;
+    }
+
+    public ExampleSortBuilder exampleEnumDesc() {
+        sortBuilder.desc("enum");
+        return this;
+    }
 }

@@ -1,12 +1,14 @@
 package com.pwinckles.jdbcgen.test.prototype;
 
 import com.pwinckles.jdbcgen.filter.ConjunctionBuilder;
+import com.pwinckles.jdbcgen.filter.EnumPredicateBuilder;
 import com.pwinckles.jdbcgen.filter.Filter;
 import com.pwinckles.jdbcgen.filter.FilterBuilderHelper;
 import com.pwinckles.jdbcgen.filter.Group;
 import com.pwinckles.jdbcgen.filter.LongPredicateBuilder;
 import com.pwinckles.jdbcgen.filter.ObjectPredicateBuilder;
 import com.pwinckles.jdbcgen.filter.StringPredicateBuilder;
+import com.pwinckles.jdbcgen.test.ExampleEnum;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -35,6 +37,10 @@ public class ExampleFilterBuilder {
 
     public ObjectPredicateBuilder<ExampleFilterBuilder, Instant> timestamp() {
         return new ObjectPredicateBuilder<>("timestamp", filter, helper);
+    }
+
+    public EnumPredicateBuilder<ExampleFilterBuilder, ExampleEnum> exampleEnum() {
+        return new EnumPredicateBuilder<>("enum", filter, helper);
     }
 
     public ConjunctionBuilder<ExampleFilterBuilder> group(Consumer<ExampleFilterBuilder> filterBuilder) {

@@ -703,6 +703,64 @@ public class GetterSetterAllTypesEntityDbTest
         }
     }
 
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void selectFilteredByEnum(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var entities = List.of(
+                    newEntityWithId().setExampleEnum(ExampleEnum.THREE), // 0
+                    newEntityWithId().setExampleEnum(ExampleEnum.ONE), // 1
+                    newEntityWithId().setExampleEnum(ExampleEnum.TWO), // 2
+                    newEntityWithId().setExampleEnum(ExampleEnum.TWO), // 3
+                    newEntityWithId().setExampleEnum(ExampleEnum.THREE), // 4
+                    newEntityWithId().setExampleEnum(ExampleEnum.THREE), // 5
+                    newEntityWithId().setExampleEnum(null) // 6
+                    );
+
+            db.insert(entities, conn);
+
+            var selected = db.select(fb -> fb.exampleEnum().isEqualTo(ExampleEnum.ONE), conn);
+            assertEntities(listWith(entities, 1), selected);
+
+            selected = db.select(fb -> fb.exampleEnum().isNotEqualTo(ExampleEnum.THREE), conn);
+            assertEntities(listWithout(entities, 0, 4, 5, 6), selected);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void selectSortByEnum(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var entities = List.of(
+                    newEntityWithId().setExampleEnum(ExampleEnum.THREE), // 0
+                    newEntityWithId().setExampleEnum(ExampleEnum.ONE), // 1
+                    newEntityWithId().setExampleEnum(ExampleEnum.TWO), // 2
+                    newEntityWithId().setExampleEnum(ExampleEnum.TWO), // 3
+                    newEntityWithId().setExampleEnum(ExampleEnum.THREE), // 4
+                    newEntityWithId().setExampleEnum(ExampleEnum.THREE), // 5
+                    newEntityWithId().setExampleEnum(null) // 6
+                    );
+
+            db.insert(entities, conn);
+
+            var selected = db.selectAll(sb -> sb.exampleEnumAsc(), conn);
+            assertEntities(
+                    List.of(
+                            entities.get(6),
+                            entities.get(1),
+                            entities.get(0),
+                            entities.get(4),
+                            entities.get(5),
+                            entities.get(2),
+                            entities.get(3)),
+                    selected);
+        }
+    }
+
     @Override
     protected Long getId(GetterSetterAllTypesEntity entity) {
         return entity.getLongId();
@@ -733,7 +791,8 @@ public class GetterSetterAllTypesEntityDbTest
                 .setDate(new Date(2023, 6, 25))
                 .setTimestamp(new Timestamp(System.currentTimeMillis()))
                 .setByteArray(RandomUtils.nextBytes(10))
-                .setUuid(UUID.randomUUID());
+                .setUuid(UUID.randomUUID())
+                .setExampleEnum(ExampleEnum.TWO);
     }
 
     @Override
@@ -761,7 +820,8 @@ public class GetterSetterAllTypesEntityDbTest
                 .setDate(new Date(2023, 6, 26))
                 .setTimestamp(new Timestamp(System.currentTimeMillis()))
                 .setByteArray(RandomUtils.nextBytes(10))
-                .setUuid(UUID.randomUUID());
+                .setUuid(UUID.randomUUID())
+                .setExampleEnum(ExampleEnum.THREE);
     }
 
     @Override
@@ -784,7 +844,8 @@ public class GetterSetterAllTypesEntityDbTest
                 .setDate(entity.getDate())
                 .setTimestamp(entity.getTimestamp())
                 .setByteArray(entity.getByteArray())
-                .setUuid(entity.getUuid());
+                .setUuid(entity.getUuid())
+                .setExampleEnum(entity.getExampleEnum());
     }
 
     @Override
@@ -802,7 +863,8 @@ public class GetterSetterAllTypesEntityDbTest
                 .setDate(null)
                 .setTimestamp(null)
                 .setByteArray(null)
-                .setUuid(null);
+                .setUuid(null)
+                .setExampleEnum(null);
     }
 
     @Override
@@ -820,7 +882,8 @@ public class GetterSetterAllTypesEntityDbTest
                 .setDate(null)
                 .setTimestamp(null)
                 .setByteArray(null)
-                .setUuid(null);
+                .setUuid(null)
+                .setExampleEnum(null);
     }
 
     @Override
