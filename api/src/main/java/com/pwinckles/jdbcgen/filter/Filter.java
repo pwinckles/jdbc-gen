@@ -5,17 +5,28 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO javadoc
+/**
+ * Represents a SQL WHERE clause.
+ */
 public class Filter {
 
     private final List<FilterPart> filterParts = new ArrayList<>();
 
-    // TODO javadoc
+    /**
+     * Add a part to the filter
+     *
+     * @param filterPart the part to add
+     */
     public void add(FilterPart filterPart) {
         filterParts.add(filterPart);
     }
 
-    // TODO javadoc
+    /**
+     * Transforms the filter into a SQL query and appends it to the query builder. If the filter is empty, nothing
+     * is appended.
+     *
+     * @param queryBuilder the query builder to append to
+     */
     public void buildQuery(StringBuilder queryBuilder) {
         if (filterParts.isEmpty()) {
             return;
@@ -24,7 +35,15 @@ public class Filter {
         filterParts.forEach(part -> part.buildQuery(queryBuilder));
     }
 
-    // TODO javadoc
+    /**
+     * Adds any values that the filter is matching against to the prepared statement starting at 'currentPosition',
+     * and returns the new current position.
+     *
+     * @param currentPosition the index to start inserting arguments at
+     * @param statement the statement to add filter arguments to
+     * @return the new index
+     * @throws SQLException
+     */
     public int addArguments(int currentPosition, PreparedStatement statement) throws SQLException {
         var position = currentPosition;
         for (var part : filterParts) {

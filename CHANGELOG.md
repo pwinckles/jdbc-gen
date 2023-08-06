@@ -2,6 +2,10 @@
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- Select, count, and delete operations now support filtering
+
 ## [1.0.1] - 2023-07-26
 
 ### Fixed

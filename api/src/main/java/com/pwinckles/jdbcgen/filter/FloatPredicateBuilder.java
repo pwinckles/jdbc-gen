@@ -1,6 +1,10 @@
 package com.pwinckles.jdbcgen.filter;
 
-// TODO javadoc
+/**
+ * Constructs a predicate for a primitive float value.
+ *
+ * @param <B> the entity's filter builder type
+ */
 public class FloatPredicateBuilder<B> extends CollectionPredicateBuilder<B, Float> {
 
     private final String field;
