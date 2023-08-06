@@ -2,8 +2,8 @@ package com.pwinckles.jdbcgen.test.prototype;
 
 import com.pwinckles.jdbcgen.BasePatch;
 import com.pwinckles.jdbcgen.JdbcGenDb;
-import com.pwinckles.jdbcgen.OrderDirection;
 import com.pwinckles.jdbcgen.filter.Filter;
+import com.pwinckles.jdbcgen.sort.SortBuilder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,20 +15,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, ExampleDb.Column, ExampleFilterBuilder> {
+public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, ExampleFilterBuilder, ExampleSortBuilder> {
 
-    public enum Column {
-        ID("id"),
-        NAME("name"),
-        COUNT("count"),
-        TIMESTAMP("timestamp");
-
-        private final String value;
-
-        Column(String value) {
-            this.value = value;
-        }
-    }
+    // TODO add sort builder to additional methods
 
     public static class Patch extends BasePatch {
 
@@ -114,12 +103,17 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
      * {@inheritDoc}
      */
     @Override
-    public List<Example> selectAll(Column orderBy, OrderDirection direction, Connection conn) throws SQLException {
+    public List<Example> selectAll(Consumer<ExampleSortBuilder> sortBuilder, Connection conn) throws SQLException {
         var results = new ArrayList<Example>();
 
+        var sb = new SortBuilder();
+        sortBuilder.accept(new ExampleSortBuilder(sb));
+
+        var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp FROM example");
+        sb.buildQuery(queryBuilder);
+
         try (var stmt = conn.createStatement()) {
-            var rs = stmt.executeQuery("SELECT id, name, count, timestamp FROM example ORDER BY " + orderBy.value + " "
-                    + direction.getValue());
+            var rs = stmt.executeQuery(queryBuilder.toString());
             while (rs.next()) {
                 results.add(fromResultSet(rs));
             }

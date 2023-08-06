@@ -9,7 +9,6 @@ import static javax.lang.model.element.Modifier.STATIC;
 import com.google.common.base.CaseFormat;
 import com.pwinckles.jdbcgen.BasePatch;
 import com.pwinckles.jdbcgen.JdbcGenDb;
-import com.pwinckles.jdbcgen.OrderDirection;
 import com.pwinckles.jdbcgen.filter.BooleanPredicateBuilder;
 import com.pwinckles.jdbcgen.filter.ConjunctionBuilder;
 import com.pwinckles.jdbcgen.filter.DoublePredicateBuilder;
@@ -23,6 +22,7 @@ import com.pwinckles.jdbcgen.filter.ObjectPredicateBuilder;
 import com.pwinckles.jdbcgen.filter.PrimitiveBooleanPredicateBuilder;
 import com.pwinckles.jdbcgen.filter.ShortPredicateBuilder;
 import com.pwinckles.jdbcgen.filter.StringPredicateBuilder;
+import com.pwinckles.jdbcgen.sort.SortBuilder;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
@@ -68,11 +68,16 @@ public class DbClassGenerator {
         var patchType = ClassName.get(entitySpec.getPackageName(), entitySpec.getDbClassName(), "Patch");
         var filterBuilderType =
                 ClassName.get(entitySpec.getPackageName(), entitySpec.getDbClassName(), "FilterBuilder");
-        var columnType = ClassName.get(entitySpec.getPackageName(), entitySpec.getDbClassName(), "Column");
+        var sortBuilderType = ClassName.get(entitySpec.getPackageName(), entitySpec.getDbClassName(), "SortBuilder");
 
         var builder = TypeSpec.classBuilder(entitySpec.getDbClassName())
                 .addSuperinterface(ParameterizedTypeName.get(
-                        ClassName.get(JdbcGenDb.class), entityType, idType, patchType, columnType, filterBuilderType))
+                        ClassName.get(JdbcGenDb.class),
+                        entityType,
+                        idType,
+                        patchType,
+                        filterBuilderType,
+                        sortBuilderType))
                 .addAnnotation(generatedAnnotation())
                 .addJavadoc("Provides basic DB access for {@link $T} entities.", entityType);
 
@@ -82,13 +87,13 @@ public class DbClassGenerator {
             builder.addModifiers(PROTECTED);
         }
 
-        builder.addType(genColumnsEnum(entityType, entitySpec))
-                .addType(genPatchClass(entityType, patchType, idType, entitySpec))
+        builder.addType(genPatchClass(entityType, patchType, idType, entitySpec))
                 .addType(genFilterBuilderClass(entityType, filterBuilderType, entitySpec))
+                .addType(genSortBuilderClass(entityType, sortBuilderType, entitySpec))
                 .addMethod(genSelect(entityType, idType, entitySpec))
                 .addMethod(genSelectFiltered(entityType, filterBuilderType, entitySpec))
                 .addMethod(genSelectAll(entityType, entitySpec))
-                .addMethod(genSelectAllOrdered(entityType, columnType, entitySpec))
+                .addMethod(genSelectAllOrdered(entityType, sortBuilderType, entitySpec))
                 .addMethod(genCount(entitySpec))
                 .addMethod(genCountFiltered(filterBuilderType, entitySpec))
                 .addMethod(genInsert(entityType, idType, entitySpec))
@@ -118,28 +123,6 @@ public class DbClassGenerator {
                 .addStaticImport(Collections.class, "unmodifiableMap")
                 .addStaticImport(Statement.class, "RETURN_GENERATED_KEYS")
                 .build();
-    }
-
-    private TypeSpec genColumnsEnum(TypeName entityType, EntitySpec entitySpec) {
-        var builder = TypeSpec.enumBuilder("Column")
-                .addModifiers(PUBLIC)
-                .addAnnotation(generatedAnnotation())
-                .addJavadoc("The database columns associated to {@link $T}", entityType);
-
-        entitySpec
-                .getFields()
-                .forEach(column -> builder.addEnumConstant(
-                        toEnumCase(column.getFieldName()),
-                        TypeSpec.anonymousClassBuilder("\"$L\"", column.getColumnName())
-                                .build()));
-
-        builder.addField(String.class, "value", PRIVATE, FINAL)
-                .addMethod(MethodSpec.constructorBuilder()
-                        .addParameter(String.class, "value")
-                        .addStatement("this.value = value")
-                        .build());
-
-        return builder.build();
     }
 
     private TypeSpec genPatchClass(TypeName entityType, TypeName patchType, TypeName idType, EntitySpec entitySpec) {
@@ -248,6 +231,44 @@ public class DbClassGenerator {
         return builder.build();
     }
 
+    private TypeSpec genSortBuilderClass(TypeName entityType, TypeName sortBuilderType, EntitySpec entitySpec) {
+        var builder = TypeSpec.classBuilder("SortBuilder")
+                .addModifiers(PUBLIC, STATIC)
+                .addAnnotation(generatedAnnotation())
+                .addJavadoc("Constructs a SQL ORDER BY clause.", entityType)
+                .addField(SortBuilder.class, "sortBuilder", PRIVATE, FINAL)
+                .addMethod(MethodSpec.constructorBuilder()
+                        .addModifiers(PUBLIC)
+                        .addParameter(SortBuilder.class, "sortBuilder")
+                        .addStatement(
+                                "this.sortBuilder = $T.requireNonNull(sortBuilder, \"sortBuilder cannot be null\")",
+                                Objects.class)
+                        .build());
+
+        entitySpec.getFields().forEach(fieldSpec -> {
+            builder.addMethod(MethodSpec.methodBuilder(fieldSpec.getFieldName() + "Asc")
+                    .addJavadoc("Orders results by $L in ascending order.\n", fieldSpec.getFieldName())
+                    .addJavadoc("\n")
+                    .addJavadoc("@return the builder to use to specify additional ordering")
+                    .addModifiers(PUBLIC)
+                    .returns(sortBuilderType)
+                    .addStatement("sortBuilder.asc(\"$L\")", fieldSpec.getColumnName())
+                    .addStatement("return this")
+                    .build());
+            builder.addMethod(MethodSpec.methodBuilder(fieldSpec.getFieldName() + "Desc")
+                    .addJavadoc("Orders results by $L in descending order.\n", fieldSpec.getFieldName())
+                    .addJavadoc("\n")
+                    .addJavadoc("@return the builder to use to specify additional ordering")
+                    .addModifiers(PUBLIC)
+                    .returns(sortBuilderType)
+                    .addStatement("sortBuilder.desc(\"$L\")", fieldSpec.getColumnName())
+                    .addStatement("return this")
+                    .build());
+        });
+
+        return builder.build();
+    }
+
     private MethodSpec genSelect(TypeName entityType, TypeName idType, EntitySpec entitySpec) {
         var query = "SELECT " + columnNames(entitySpec)
                 + " FROM " + entitySpec.getTableName()
@@ -322,21 +343,26 @@ public class DbClassGenerator {
                 .build();
     }
 
-    private MethodSpec genSelectAllOrdered(TypeName entityType, TypeName columnType, EntitySpec entitySpec) {
-        var query = "SELECT " + columnNames(entitySpec) + " FROM " + entitySpec.getTableName() + " ORDER BY ";
+    private MethodSpec genSelectAllOrdered(TypeName entityType, TypeName sortBuilderType, EntitySpec entitySpec) {
+        var query = "SELECT " + columnNames(entitySpec) + " FROM " + entitySpec.getTableName();
         return MethodSpec.methodBuilder("selectAll")
                 .addJavadoc("{@inheritDoc}")
                 .addAnnotation(Override.class)
                 .addModifiers(PUBLIC)
                 .returns(listType(entityType))
-                .addParameter(columnType, "orderBy")
-                .addParameter(OrderDirection.class, "direction")
+                .addParameter(ParameterizedTypeName.get(ClassName.get(Consumer.class), sortBuilderType), "sortBuilder")
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
                 .addStatement("var results = new $T<$T>()", ArrayList.class, entityType)
+                .addCode("\n")
+                .addStatement("var sb = new $T()", SortBuilder.class)
+                .addStatement("sortBuilder.accept(new $T(sb))", sortBuilderType)
+                .addCode("\n")
+                .addStatement("var queryBuilder = new $T(\"$L\")", StringBuilder.class, query)
+                .addStatement("sb.buildQuery(queryBuilder)")
+                .addCode("\n")
                 .beginControlFlow("try (var stmt = conn.createStatement())")
-                .addStatement(
-                        "var rs = stmt.executeQuery(\"$L\" + orderBy.value + \" \" + direction.getValue())", query)
+                .addStatement("var rs = stmt.executeQuery(queryBuilder.toString())")
                 .beginControlFlow("while (rs.next())")
                 .addStatement("results.add(fromResultSet(rs))")
                 .endControlFlow()

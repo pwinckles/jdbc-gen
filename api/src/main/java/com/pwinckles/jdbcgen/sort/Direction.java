@@ -1,15 +1,15 @@
-package com.pwinckles.jdbcgen;
+package com.pwinckles.jdbcgen.sort;
 
 /**
  * The direction to sort query results.
  */
-public enum OrderDirection {
+enum Direction {
     ASCENDING("ASC"),
     DESCENDING("DESC");
 
     private final String value;
 
-    OrderDirection(String value) {
+    Direction(String value) {
         this.value = value;
     }
 

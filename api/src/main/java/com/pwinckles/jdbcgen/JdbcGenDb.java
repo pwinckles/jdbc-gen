@@ -12,10 +12,10 @@ import java.util.function.Consumer;
  * @param <E> The entity type
  * @param <I> The type of the entity's ID
  * @param <P> The type of entity's patch class, this is a generated class
- * @param <C> The type of the entity's column enum, this is a generated class
  * @param <F> The type of the filter builder, this is a generated class
+ * @param <S> The type of the sort builder, this is a generated class
  */
-public interface JdbcGenDb<E, I, P extends BasePatch, C, F> {
+public interface JdbcGenDb<E, I, P extends BasePatch, F, S> {
 
     /**
      * Selects a single entity from the DB by its ID. Null is returned if the entity is not found.
@@ -52,13 +52,12 @@ public interface JdbcGenDb<E, I, P extends BasePatch, C, F> {
      * Selects all of the entities. If there are none, then an empty list is returned. The results are ordered as
      * specified.
      *
-     * @param orderBy the column to order on
-     * @param direction the direction to order
+     * @param sortBuilder specify the columns to sort on
      * @param conn the JDBC connection
      * @return an ordered list of entities or an empty list
      * @throws SQLException
      */
-    List<E> selectAll(C orderBy, OrderDirection direction, Connection conn) throws SQLException;
+    List<E> selectAll(Consumer<S> sortBuilder, Connection conn) throws SQLException;
 
     /**
      * Counts the number of entities.

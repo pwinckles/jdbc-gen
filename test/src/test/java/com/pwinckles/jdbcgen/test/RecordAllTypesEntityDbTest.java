@@ -15,8 +15,8 @@ public class RecordAllTypesEntityDbTest
                 RecordAllTypesEntity,
                 Long,
                 RecordAllTypesEntityDb.Patch,
-                RecordAllTypesEntityDb.Column,
-                RecordAllTypesEntityDb.FilterBuilder> {
+                RecordAllTypesEntityDb.FilterBuilder,
+                RecordAllTypesEntityDb.SortBuilder> {
 
     public RecordAllTypesEntityDbTest() {
         super(new RecordAllTypesEntityDb());

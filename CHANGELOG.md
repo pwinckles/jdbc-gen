@@ -2,10 +2,15 @@
 
 ## [Unreleased] - ReleaseDate
 
+## Breaking changes
+
+- The mechanism for specifying the sort order has changed
+
 ### Added
 
 - Select, count, and delete operations now support filtering
 - Add support for records
+- Add support for ordering by multiple fields
 
 ## [1.0.1] - 2023-07-26
 

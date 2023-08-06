@@ -1,6 +1,5 @@
 package com.pwinckles.jdbcgen.test;
 
-import com.pwinckles.jdbcgen.OrderDirection;
 import com.pwinckles.jdbcgen.test.util.TestUtil;
 import java.sql.Connection;
 import java.sql.Date;
@@ -20,7 +19,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class QuotedEntityDbTest
         extends TestBase<
-                QuotedEntity, Long, QuotedEntityDb.Patch, QuotedEntityDb.Column, QuotedEntityDb.FilterBuilder> {
+                QuotedEntity, Long, QuotedEntityDb.Patch, QuotedEntityDb.FilterBuilder, QuotedEntityDb.SortBuilder> {
 
     public QuotedEntityDbTest() {
         super(new QuotedEntityDb());
@@ -67,18 +66,18 @@ public class QuotedEntityDbTest
 
             db.insert(originals, conn);
 
-            var results = db.selectAll(QuotedEntityDb.Column.LONG_ID, OrderDirection.ASCENDING, conn);
+            var results = db.selectAll(sb -> sb.longIdAsc(), conn);
             assertEntities(originals, results);
 
-            results = db.selectAll(QuotedEntityDb.Column.STRING, OrderDirection.DESCENDING, conn);
+            results = db.selectAll(sb -> sb.stringDesc(), conn);
             assertEntities(originals, results);
 
             Collections.reverse(originals);
 
-            results = db.selectAll(QuotedEntityDb.Column.LONG_ID, OrderDirection.DESCENDING, conn);
+            results = db.selectAll(sb -> sb.longIdDesc(), conn);
             assertEntities(originals, results);
 
-            results = db.selectAll(QuotedEntityDb.Column.STRING, OrderDirection.ASCENDING, conn);
+            results = db.selectAll(sb -> sb.stringAsc(), conn);
             assertEntities(originals, results);
         }
     }

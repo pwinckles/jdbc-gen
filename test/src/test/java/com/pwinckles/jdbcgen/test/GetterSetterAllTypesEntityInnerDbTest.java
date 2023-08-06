@@ -1,6 +1,5 @@
 package com.pwinckles.jdbcgen.test;
 
-import com.pwinckles.jdbcgen.OrderDirection;
 import com.pwinckles.jdbcgen.test.util.TestUtil;
 import java.sql.Connection;
 import java.sql.Date;
@@ -23,8 +22,8 @@ public class GetterSetterAllTypesEntityInnerDbTest
                 Wrapper.GetterSetterAllTypesEntity,
                 Long,
                 GetterSetterAllTypesEntityInnerDb.Patch,
-                GetterSetterAllTypesEntityInnerDb.Column,
-                GetterSetterAllTypesEntityInnerDb.FilterBuilder> {
+                GetterSetterAllTypesEntityInnerDb.FilterBuilder,
+                GetterSetterAllTypesEntityInnerDb.SortBuilder> {
 
     public GetterSetterAllTypesEntityInnerDbTest() {
         super(new GetterSetterAllTypesEntityInnerDb());
@@ -49,19 +48,18 @@ public class GetterSetterAllTypesEntityInnerDbTest
 
             db.insert(originals, conn);
 
-            var results =
-                    db.selectAll(GetterSetterAllTypesEntityInnerDb.Column.LONG_ID, OrderDirection.ASCENDING, conn);
+            var results = db.selectAll(sb -> sb.longIdAsc(), conn);
             assertEntities(originals, results);
 
-            results = db.selectAll(GetterSetterAllTypesEntityInnerDb.Column.STRING, OrderDirection.DESCENDING, conn);
+            results = db.selectAll(sb -> sb.stringDesc(), conn);
             assertEntities(originals, results);
 
             Collections.reverse(originals);
 
-            results = db.selectAll(GetterSetterAllTypesEntityInnerDb.Column.LONG_ID, OrderDirection.DESCENDING, conn);
+            results = db.selectAll(sb -> sb.longIdDesc(), conn);
             assertEntities(originals, results);
 
-            results = db.selectAll(GetterSetterAllTypesEntityInnerDb.Column.STRING, OrderDirection.ASCENDING, conn);
+            results = db.selectAll(sb -> sb.stringAsc(), conn);
             assertEntities(originals, results);
         }
     }
