@@ -54,6 +54,7 @@ public class DirectAllTypesEntityInnerDbTest
         entity.timestamp = new Timestamp(System.currentTimeMillis());
         entity.byteArray = RandomUtils.nextBytes(10);
         entity.uuid = UUID.randomUUID();
+        entity.exampleEnum = ExampleEnum.TWO;
         return entity;
     }
 
@@ -84,6 +85,7 @@ public class DirectAllTypesEntityInnerDbTest
         updated.timestamp = new Timestamp(System.currentTimeMillis());
         updated.byteArray = RandomUtils.nextBytes(10);
         updated.uuid = UUID.randomUUID();
+        updated.exampleEnum = ExampleEnum.THREE;
         return updated;
     }
 
@@ -107,7 +109,8 @@ public class DirectAllTypesEntityInnerDbTest
                 .setDate(entity.date)
                 .setTimestamp(entity.timestamp)
                 .setByteArray(entity.byteArray)
-                .setUuid(entity.uuid);
+                .setUuid(entity.uuid)
+                .setExampleEnum(entity.exampleEnum);
     }
 
     @Override
@@ -126,6 +129,7 @@ public class DirectAllTypesEntityInnerDbTest
         updated.timestamp = null;
         updated.byteArray = null;
         updated.uuid = null;
+        updated.exampleEnum = null;
         return updated;
     }
 
@@ -144,7 +148,8 @@ public class DirectAllTypesEntityInnerDbTest
                 .setDate(null)
                 .setTimestamp(null)
                 .setByteArray(null)
-                .setUuid(null);
+                .setUuid(null)
+                .setExampleEnum(null);
     }
 
     @Override

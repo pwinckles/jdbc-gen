@@ -212,12 +212,14 @@ public class EntityAnalyzer {
 
         for (var field : fields) {
             var name = field.getSimpleName().toString();
+            var isEnum = isEnum(field);
             var fieldIsPrivate = field.getModifiers().contains(Modifier.PRIVATE);
             var columnAnnotation = field.getAnnotationsByType(JdbcGenColumn.class)[0];
             var builder = FieldSpec.builder()
                     .withColumnName(escapeQuotes(columnAnnotation.name()))
                     .withIdentity(columnAnnotation.identity())
-                    .withFieldElement(field);
+                    .withFieldElement(field)
+                    .withIsEnum(isEnum);
 
             var getter = candidateMethodMap.get(getterName(field, isRecord));
             if (getter != null
@@ -266,6 +268,14 @@ public class EntityAnalyzer {
         return BeanUtil.getterName(
                 field.getSimpleName().toString(),
                 processingEnv.getTypeUtils().getPrimitiveType(TypeKind.BOOLEAN).equals(field.asType()));
+    }
+
+    private boolean isEnum(VariableElement element) {
+        var typeElement = processingEnv.getTypeUtils().asElement(element.asType());
+        if (typeElement == null) {
+            return false;
+        }
+        return typeElement.getKind() == ElementKind.ENUM;
     }
 
     private String escapeQuotes(String value) {

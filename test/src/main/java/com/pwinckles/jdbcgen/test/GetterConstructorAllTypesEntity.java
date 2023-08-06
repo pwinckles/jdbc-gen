@@ -72,6 +72,9 @@ public class GetterConstructorAllTypesEntity {
     @JdbcGenColumn(name = "at_uuid")
     private final UUID uuid;
 
+    @JdbcGenColumn(name = "at_enum")
+    private ExampleEnum exampleEnum;
+
     public GetterConstructorAllTypesEntity(
             Long longId,
             long longPrim,
@@ -91,7 +94,8 @@ public class GetterConstructorAllTypesEntity {
             Date date,
             Timestamp timestamp,
             byte[] byteArray,
-            UUID uuid) {
+            UUID uuid,
+            ExampleEnum exampleEnum) {
         this.longId = longId;
         this.longPrim = longPrim;
         this.intObj = intObj;
@@ -111,6 +115,7 @@ public class GetterConstructorAllTypesEntity {
         this.timestamp = timestamp;
         this.byteArray = byteArray;
         this.uuid = uuid;
+        this.exampleEnum = exampleEnum;
     }
 
     public Long getLongId() {
@@ -187,5 +192,9 @@ public class GetterConstructorAllTypesEntity {
 
     public UUID getUuid() {
         return uuid;
+    }
+
+    public ExampleEnum getExampleEnum() {
+        return exampleEnum;
     }
 }

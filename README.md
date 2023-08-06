@@ -5,8 +5,8 @@
 `jdbc-gen` uses compile-time annotation processing to generate simple JDBC database access classes. It only supports
 basic CRUD operations on single-table entities. It does not model entity relationships or operate on aggregates.
 
-Its niche is executing simple DB operations without the weight and baggage of a proper ORM, the tediousness of
-JDBC, and does not use runtime reflection.
+Its niche is executing simple DB operations without the weight and baggage of a proper ORM or the tediousness of
+JDBC. It does not use runtime reflection, and has no dependencies.
 
 ## Dependencies
 
@@ -43,6 +43,8 @@ be simple POJOs (records are supported!), and have the following restrictions:
 2. They may not extend another class (implementing interfaces is fine)
 3. They may not be non-static inner classes
 4. The fields may only be types supported by the JDBC driver implementation
+
+Enum fields are only currently supported as strings mapped to their canonical name.
 
 For example:
 
@@ -134,7 +136,6 @@ example, `@JdbcGen(name = "MyExampleDao")` would produce a class named `MyExampl
 
 In the future, support may be added for the following features:
 
-1. Enums as a field type
+1. `SELECT` query paging
 2. Joins
-3. `SELECT` query paging
-4. Inheritance?
+3. Inheritance?

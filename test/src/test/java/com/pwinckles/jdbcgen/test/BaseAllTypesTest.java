@@ -32,7 +32,8 @@ public abstract class BaseAllTypesTest<E, I, P extends BasePatch, C, F> extends 
                     + " at_date DATE,"
                     + " at_timestamp TIMESTAMP,"
                     + " at_byte_array BLOB,"
-                    + " at_uuid UUID"
+                    + " at_uuid UUID,"
+                    + " at_enum VARCHAR(255)"
                     + ")");
         }
     }

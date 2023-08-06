@@ -47,7 +47,8 @@ public class EscapedQuotedEntityDbTest
                     + " \"at_date\" DATE,"
                     + " \"at_timestamp\" TIMESTAMP,"
                     + " \"at_byte_array\" BLOB,"
-                    + " \"at_uuid\" UUID"
+                    + " \"at_uuid\" UUID,"
+                    + " \"at_enum\" VARCHAR(255)"
                     + ")");
         }
     }
@@ -112,7 +113,8 @@ public class EscapedQuotedEntityDbTest
                 .setDate(new Date(2023, 6, 25))
                 .setTimestamp(new Timestamp(System.currentTimeMillis()))
                 .setByteArray(RandomUtils.nextBytes(10))
-                .setUuid(UUID.randomUUID());
+                .setUuid(UUID.randomUUID())
+                .setExampleEnum(ExampleEnum.TWO);
     }
 
     @Override
@@ -140,7 +142,8 @@ public class EscapedQuotedEntityDbTest
                 .setDate(new Date(2023, 6, 26))
                 .setTimestamp(new Timestamp(System.currentTimeMillis()))
                 .setByteArray(RandomUtils.nextBytes(10))
-                .setUuid(UUID.randomUUID());
+                .setUuid(UUID.randomUUID())
+                .setExampleEnum(ExampleEnum.THREE);
     }
 
     @Override
@@ -163,7 +166,8 @@ public class EscapedQuotedEntityDbTest
                 .setDate(entity.getDate())
                 .setTimestamp(entity.getTimestamp())
                 .setByteArray(entity.getByteArray())
-                .setUuid(entity.getUuid());
+                .setUuid(entity.getUuid())
+                .setExampleEnum(entity.getExampleEnum());
     }
 
     @Override
@@ -181,7 +185,8 @@ public class EscapedQuotedEntityDbTest
                 .setDate(null)
                 .setTimestamp(null)
                 .setByteArray(null)
-                .setUuid(null);
+                .setUuid(null)
+                .setExampleEnum(null);
     }
 
     @Override
@@ -199,7 +204,8 @@ public class EscapedQuotedEntityDbTest
                 .setDate(null)
                 .setTimestamp(null)
                 .setByteArray(null)
-                .setUuid(null);
+                .setUuid(null)
+                .setExampleEnum(null);
     }
 
     @Override

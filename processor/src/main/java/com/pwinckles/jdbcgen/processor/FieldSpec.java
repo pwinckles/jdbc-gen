@@ -16,6 +16,7 @@ public class FieldSpec {
     private final ExecutableElement setterElement;
     private final FieldGetMethod getMethod;
     private final FieldSetMethod setMethod;
+    private final boolean isEnum;
 
     public static Builder builder() {
         return new Builder();
@@ -28,7 +29,8 @@ public class FieldSpec {
             ExecutableElement getterElement,
             ExecutableElement setterElement,
             FieldGetMethod getMethod,
-            FieldSetMethod setMethod) {
+            FieldSetMethod setMethod,
+            boolean isEnum) {
         this.columnName = Objects.requireNonNull(columnName, "columnName cannot be null");
         this.identity = identity;
         this.fieldElement = Objects.requireNonNull(fieldElement, "fieldElement cannot be null");
@@ -36,6 +38,7 @@ public class FieldSpec {
         this.setterElement = setterElement;
         this.getMethod = Objects.requireNonNull(getMethod, "getMethod cannot be null");
         this.setMethod = Objects.requireNonNull(setMethod, "setMethod cannot be null");
+        this.isEnum = isEnum;
 
         if (getMethod == FieldGetMethod.GETTER) {
             Objects.requireNonNull(getterElement, "getterElement cannot be null");
@@ -64,6 +67,13 @@ public class FieldSpec {
      */
     public boolean isPrimitive() {
         return fieldElement.asType().getKind().isPrimitive();
+    }
+
+    /**
+     * @return true if the field is an enum
+     */
+    public boolean isEnum() {
+        return isEnum;
     }
 
     /**
@@ -136,6 +146,7 @@ public class FieldSpec {
         private ExecutableElement setterElement;
         private FieldGetMethod getMethod;
         private FieldSetMethod setMethod;
+        private boolean isEnum;
 
         public Builder withColumnName(String columnName) {
             this.columnName = columnName;
@@ -172,9 +183,14 @@ public class FieldSpec {
             return this;
         }
 
+        public Builder withIsEnum(boolean isEnum) {
+            this.isEnum = isEnum;
+            return this;
+        }
+
         public FieldSpec build() {
             return new FieldSpec(
-                    columnName, identity, fieldElement, getterElement, setterElement, getMethod, setMethod);
+                    columnName, identity, fieldElement, getterElement, setterElement, getMethod, setMethod, isEnum);
         }
     }
 }

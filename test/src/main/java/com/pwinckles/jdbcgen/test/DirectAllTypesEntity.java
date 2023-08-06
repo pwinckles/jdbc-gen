@@ -72,6 +72,9 @@ public class DirectAllTypesEntity implements Cloneable {
     @JdbcGenColumn(name = "at_uuid")
     public UUID uuid;
 
+    @JdbcGenColumn(name = "at_enum")
+    public ExampleEnum exampleEnum;
+
     @Override
     public DirectAllTypesEntity clone() {
         var clone = new DirectAllTypesEntity();
@@ -94,6 +97,7 @@ public class DirectAllTypesEntity implements Cloneable {
         clone.timestamp = timestamp;
         clone.byteArray = byteArray;
         clone.uuid = uuid;
+        clone.exampleEnum = exampleEnum;
         return clone;
     }
 }

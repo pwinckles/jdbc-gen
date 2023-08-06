@@ -1,5 +1,6 @@
 package com.pwinckles.jdbcgen.test.prototype;
 
+import com.pwinckles.jdbcgen.test.ExampleEnum;
 import com.pwinckles.jdbcgen.test.util.TestUtil;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -219,13 +220,14 @@ public class ExampleTest {
         return new Example()
                 .setName(RandomStringUtils.randomAlphanumeric(10))
                 .setCount(RandomUtils.nextLong())
-                .setTimestamp(TestUtil.now());
+                .setTimestamp(TestUtil.now())
+                .setExampleEnum(ExampleEnum.TWO);
     }
 
     private void createTable(Connection conn) throws SQLException {
         try (var stmt = conn.createStatement()) {
             stmt.execute(
-                    "CREATE TABLE example (id IDENTITY PRIMARY KEY, name VARCHAR(255), count BIGINT, timestamp TIMESTAMP)");
+                    "CREATE TABLE example (id IDENTITY PRIMARY KEY, name VARCHAR(255), count BIGINT, timestamp TIMESTAMP, enum VARCHAR(255))");
         }
     }
 }

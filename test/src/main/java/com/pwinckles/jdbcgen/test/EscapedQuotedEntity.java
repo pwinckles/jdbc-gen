@@ -72,6 +72,9 @@ public class EscapedQuotedEntity implements Cloneable {
     @JdbcGenColumn(name = "\\\"at_uuid\\\"")
     private UUID uuid;
 
+    @JdbcGenColumn(name = "\\\"at_enum\\\"")
+    private ExampleEnum exampleEnum;
+
     public Long getLongId() {
         return longId;
     }
@@ -243,6 +246,15 @@ public class EscapedQuotedEntity implements Cloneable {
         return this;
     }
 
+    public ExampleEnum getExampleEnum() {
+        return exampleEnum;
+    }
+
+    public EscapedQuotedEntity setExampleEnum(ExampleEnum exampleEnum) {
+        this.exampleEnum = exampleEnum;
+        return this;
+    }
+
     @Override
     public EscapedQuotedEntity clone() {
         var clone = new EscapedQuotedEntity();
@@ -265,6 +277,7 @@ public class EscapedQuotedEntity implements Cloneable {
         clone.timestamp = timestamp;
         clone.byteArray = byteArray;
         clone.uuid = uuid;
+        clone.exampleEnum = exampleEnum;
         return clone;
     }
 }

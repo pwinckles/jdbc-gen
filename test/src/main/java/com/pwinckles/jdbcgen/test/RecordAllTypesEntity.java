@@ -34,4 +34,5 @@ public record RecordAllTypesEntity(
         @JdbcGenColumn(name = "at_date") Date date,
         @JdbcGenColumn(name = "at_timestamp") Timestamp timestamp,
         @JdbcGenColumn(name = "at_byte_array") byte[] byteArray,
-        @JdbcGenColumn(name = "at_uuid") UUID uuid) {}
+        @JdbcGenColumn(name = "at_uuid") UUID uuid,
+        @JdbcGenColumn(name = "at_enum") ExampleEnum exampleEnum) {}
