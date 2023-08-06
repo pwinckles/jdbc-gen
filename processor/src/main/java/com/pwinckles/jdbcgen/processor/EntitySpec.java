@@ -105,8 +105,8 @@ public class EntitySpec {
         private String tableName;
         private TypeElement typeElement;
         private ExecutableElement constructorElement;
-        private FieldSpec identityColumn;
-        private List<FieldSpec> columns;
+        private FieldSpec identityField;
+        private List<FieldSpec> fields;
         private boolean canonicalConstructor;
 
         public Builder withPackageName(String packageName) {
@@ -134,13 +134,13 @@ public class EntitySpec {
             return this;
         }
 
-        public Builder withIdentityColumn(FieldSpec identityColumn) {
-            this.identityColumn = identityColumn;
+        public Builder withIdentityField(FieldSpec identityField) {
+            this.identityField = identityField;
             return this;
         }
 
-        public Builder withColumns(List<FieldSpec> columns) {
-            this.columns = columns;
+        public Builder withFields(List<FieldSpec> fields) {
+            this.fields = fields;
             return this;
         }
 
@@ -156,8 +156,8 @@ public class EntitySpec {
                     tableName,
                     typeElement,
                     constructorElement,
-                    identityColumn,
-                    columns,
+                    identityField,
+                    fields,
                     canonicalConstructor);
         }
     }

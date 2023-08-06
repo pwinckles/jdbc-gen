@@ -71,9 +71,9 @@ public class EntityAnalyzer {
         entitySpecBuilder.withConstructorElement(constructor).withCanonicalConstructor(hasCanonicalConstructor);
 
         var fieldSpecs = resolveFieldSpecs(entity, fields, hasCanonicalConstructor, isRecord);
-        entitySpecBuilder.withColumns(fieldSpecs);
+        entitySpecBuilder.withFields(fieldSpecs);
 
-        fieldSpecs.stream().filter(FieldSpec::isIdentity).findFirst().ifPresent(entitySpecBuilder::withIdentityColumn);
+        fieldSpecs.stream().filter(FieldSpec::isIdentity).findFirst().ifPresent(entitySpecBuilder::withIdentityField);
 
         return entitySpecBuilder.build();
     }
