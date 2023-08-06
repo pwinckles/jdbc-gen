@@ -5,6 +5,7 @@
 ### Added
 
 - Select, count, and delete operations now support filtering
+- Add support for records
 
 ## [1.0.1] - 2023-07-26
 

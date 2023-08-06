@@ -15,11 +15,23 @@
     <name>jdbc-gen-test</name>
     <description>Tests for jdbc-gen</description>
 
+    <properties>
+        <!-- Need java 17+ for the tests to test record support -->
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.pwinckles.jdbcgen</groupId>
             <artifactId>jdbc-gen-processor</artifactId>
             <version>1.0.2-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.soabase.record-builder</groupId>
+            <artifactId>record-builder-processor</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Test -->
