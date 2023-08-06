@@ -726,6 +726,9 @@ public class GetterSetterAllTypesEntityDbTest
 
             selected = db.select(fb -> fb.exampleEnum().isNotEqualTo(ExampleEnum.THREE), conn);
             assertEntities(listWithout(entities, 0, 4, 5, 6), selected);
+
+            selected = db.select(fb -> fb.exampleEnum().isIn(List.of(ExampleEnum.TWO, ExampleEnum.THREE)), conn);
+            assertEntities(listWith(entities, 0, 2, 3, 4, 5), selected);
         }
     }
 
