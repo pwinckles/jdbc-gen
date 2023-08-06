@@ -147,19 +147,19 @@ public class DbClassGenerator {
                         entitySpec.getIdentityField().getColumnName())
                 .build());
 
-        entitySpec.getFields().forEach(column -> {
-            var field = column.getFieldElement();
+        entitySpec.getFields().forEach(fieldSpec -> {
+            var field = fieldSpec.getFieldElement();
             var fieldName = field.getSimpleName().toString();
             var methodBuilder = MethodSpec.methodBuilder(BeanUtil.setterName(fieldName))
                     .addModifiers(PUBLIC)
                     .returns(patchType)
                     .addParameter(TypeName.get(field.asType()), fieldName);
 
-            if (column.isEnum()) {
+            if (fieldSpec.isEnum()) {
                 methodBuilder.addStatement(
-                        "put(\"$L\", $T.enumToString($N))", column.getColumnName(), JdbcGenUtil.class, fieldName);
+                        "put(\"$L\", $T.enumToString($N))", fieldSpec.getColumnName(), JdbcGenUtil.class, fieldName);
             } else {
-                methodBuilder.addStatement("put(\"$L\", $N)", column.getColumnName(), fieldName);
+                methodBuilder.addStatement("put(\"$L\", $N)", fieldSpec.getColumnName(), fieldName);
             }
             methodBuilder.addStatement("return this");
 
@@ -826,18 +826,18 @@ public class DbClassGenerator {
             args.add(entityType);
 
             for (var it = entitySpec.getFields().iterator(); it.hasNext(); ) {
-                var column = it.next();
-                if (column.isPrimitive()) {
+                var fieldSpec = it.next();
+                if (fieldSpec.isPrimitive()) {
                     stmtBuilder.append(
-                            resultSetPrimitiveGet(column.getFieldElement().asType()));
-                } else if (column.isEnum()) {
+                            resultSetPrimitiveGet(fieldSpec.getFieldElement().asType()));
+                } else if (fieldSpec.isEnum()) {
                     stmtBuilder.append("$T.enumFromResultSet(rs, i++, $T.class)");
                     args.add(JdbcGenUtil.class);
-                    args.add(TypeName.get(column.getFieldElement().asType()));
+                    args.add(TypeName.get(fieldSpec.getFieldElement().asType()));
                 } else {
                     stmtBuilder.append("$T.getNullableValue(rs, i++, $T.class)");
                     args.add(JdbcGenUtil.class);
-                    args.add(TypeName.get(column.getFieldElement().asType()));
+                    args.add(TypeName.get(fieldSpec.getFieldElement().asType()));
                 }
 
                 if (it.hasNext()) {
@@ -850,25 +850,26 @@ public class DbClassGenerator {
         } else {
             builder.addStatement("var entity = new $T()", entityType);
 
-            entitySpec.getFields().forEach(column -> {
-                var primitive = column.isPrimitive();
-                var fieldType = TypeName.get(column.getFieldElement().asType());
+            entitySpec.getFields().forEach(fieldSpec -> {
+                var primitive = fieldSpec.isPrimitive();
+                var fieldType = TypeName.get(fieldSpec.getFieldElement().asType());
 
                 String getMethod;
                 if (primitive) {
-                    getMethod = resultSetPrimitiveGet(column.getFieldElement().asType());
-                } else if (column.isEnum()) {
+                    getMethod =
+                            resultSetPrimitiveGet(fieldSpec.getFieldElement().asType());
+                } else if (fieldSpec.isEnum()) {
                     getMethod = "$T.enumFromResultSet(rs, i++, $T.class)";
                 } else {
                     getMethod = "$T.getNullableValue(rs, i++, $T.class)";
                 }
 
                 String statement;
-                if (column.getSetMethod() == FieldSetMethod.DIRECT) {
-                    statement = "entity." + column.getFieldName() + " = " + getMethod;
+                if (fieldSpec.getSetMethod() == FieldSetMethod.DIRECT) {
+                    statement = "entity." + fieldSpec.getFieldName() + " = " + getMethod;
 
                 } else {
-                    statement = "entity." + column.getSetterName() + "(" + getMethod + ")";
+                    statement = "entity." + fieldSpec.getSetterName() + "(" + getMethod + ")";
                 }
 
                 if (primitive) {
@@ -901,14 +902,18 @@ public class DbClassGenerator {
                     .endControlFlow();
         }
 
-        entitySpec.getFields().stream().filter(column -> !column.isIdentity()).forEach(column -> {
-            if (column.isEnum()) {
-                builder.addStatement(
-                        "stmt.setObject(i++, $T.enumToString(entity.$L))", JdbcGenUtil.class, fieldAccess(column));
-            } else {
-                builder.addStatement("stmt.setObject(i++, entity.$L)", fieldAccess(column));
-            }
-        });
+        entitySpec.getFields().stream()
+                .filter(fieldSpec -> !fieldSpec.isIdentity())
+                .forEach(fieldSpec -> {
+                    if (fieldSpec.isEnum()) {
+                        builder.addStatement(
+                                "stmt.setObject(i++, $T.enumToString(entity.$L))",
+                                JdbcGenUtil.class,
+                                fieldAccess(fieldSpec));
+                    } else {
+                        builder.addStatement("stmt.setObject(i++, entity.$L)", fieldAccess(fieldSpec));
+                    }
+                });
 
         return builder.build();
     }
@@ -922,14 +927,18 @@ public class DbClassGenerator {
                 .addException(SQLException.class)
                 .addStatement("int i = 1");
 
-        entitySpec.getFields().stream().filter(column -> !column.isIdentity()).forEach(column -> {
-            if (column.isEnum()) {
-                builder.addStatement(
-                        "stmt.setObject(i++, $T.enumToString(entity.$L))", JdbcGenUtil.class, fieldAccess(column));
-            } else {
-                builder.addStatement("stmt.setObject(i++, entity.$L)", fieldAccess(column));
-            }
-        });
+        entitySpec.getFields().stream()
+                .filter(fieldSpec -> !fieldSpec.isIdentity())
+                .forEach(fieldSpec -> {
+                    if (fieldSpec.isEnum()) {
+                        builder.addStatement(
+                                "stmt.setObject(i++, $T.enumToString(entity.$L))",
+                                JdbcGenUtil.class,
+                                fieldAccess(fieldSpec));
+                    } else {
+                        builder.addStatement("stmt.setObject(i++, entity.$L)", fieldAccess(fieldSpec));
+                    }
+                });
 
         builder.addStatement("stmt.setObject(i++, entity.$L)", fieldAccess(entitySpec.getIdentityField()));
 
@@ -952,7 +961,7 @@ public class DbClassGenerator {
 
     private String columnNamesWithoutId(EntitySpec entitySpec) {
         return entitySpec.getFields().stream()
-                .filter(column -> !column.isIdentity())
+                .filter(fieldSpec -> !fieldSpec.isIdentity())
                 .map(FieldSpec::getColumnName)
                 .collect(Collectors.joining(", "));
     }
@@ -1026,8 +1035,9 @@ public class DbClassGenerator {
                 new StringBuilder("UPDATE ").append(entitySpec.getTableName()).append(" SET ");
 
         entitySpec.getFields().stream()
-                .filter(column -> !column.isIdentity())
-                .forEach(column -> queryBuilder.append(column.getColumnName()).append(" = ?, "));
+                .filter(fieldSpec -> !fieldSpec.isIdentity())
+                .forEach(fieldSpec ->
+                        queryBuilder.append(fieldSpec.getColumnName()).append(" = ?, "));
 
         queryBuilder.delete(queryBuilder.length() - 2, queryBuilder.length());
 
