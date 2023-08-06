@@ -1,5 +1,6 @@
 package com.pwinckles.jdbcgen.filter;
 
+import com.pwinckles.jdbcgen.JdbcGenUtil;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -34,7 +35,7 @@ public class EnumPredicateBuilder<B, T extends Enum<T>> {
      * @return conjunction builder
      */
     public ConjunctionBuilder<B> isEqualTo(T value) {
-        filter.add(new Predicate(field, Operation.EQUAL, toStringValue(value)));
+        filter.add(new Predicate(field, Operation.EQUAL, JdbcGenUtil.enumToString(value)));
         return helper.conjunctionBuilder();
     }
 
@@ -45,7 +46,7 @@ public class EnumPredicateBuilder<B, T extends Enum<T>> {
      * @return conjunction builder
      */
     public ConjunctionBuilder<B> isNotEqualTo(T value) {
-        filter.add(new Predicate(field, Operation.NOT_EQUAL, toStringValue(value)));
+        filter.add(new Predicate(field, Operation.NOT_EQUAL, JdbcGenUtil.enumToString(value)));
         return helper.conjunctionBuilder();
     }
 
@@ -76,7 +77,7 @@ public class EnumPredicateBuilder<B, T extends Enum<T>> {
     public ConjunctionBuilder<B> isIn(Collection<T> values) {
         Objects.requireNonNull(values, "values cannot be null");
         filter.add(InListPredicate.inList(
-                field, values.stream().map(this::toStringValue).collect(Collectors.toList())));
+                field, values.stream().map(JdbcGenUtil::enumToString).collect(Collectors.toList())));
         return helper.conjunctionBuilder();
     }
 
@@ -89,11 +90,7 @@ public class EnumPredicateBuilder<B, T extends Enum<T>> {
     public ConjunctionBuilder<B> isNotIn(Collection<T> values) {
         Objects.requireNonNull(values, "values cannot be null");
         filter.add(InListPredicate.notInList(
-                field, values.stream().map(this::toStringValue).collect(Collectors.toList())));
+                field, values.stream().map(JdbcGenUtil::enumToString).collect(Collectors.toList())));
         return helper.conjunctionBuilder();
-    }
-
-    private String toStringValue(T value) {
-        return value == null ? null : value.name();
     }
 }
