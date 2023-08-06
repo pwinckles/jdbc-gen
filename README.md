@@ -37,7 +37,7 @@ generation.
 ## Usage
 
 `jdbc-gen` generates database access classes for entities that are annotated with `@JdbcGen`. Entity classes should
-be simple POJOs, and have the following restrictions:
+be simple POJOs (records are supported!), and have the following restrictions:
 
 1. They may not be `private`
 2. They may not extend another class (implementing interfaces is fine)
@@ -137,6 +137,5 @@ In the future, support may be added for the following features:
 1. Rework sorting
 2. Joins
 3. Enums as a field type
-4. Record support
-5. `SELECT` query paging
-6. Inheritance?
+4. `SELECT` query paging
+5. Inheritance?

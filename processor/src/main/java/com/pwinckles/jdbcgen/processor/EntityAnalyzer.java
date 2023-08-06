@@ -64,11 +64,13 @@ public class EntityAnalyzer {
 
         var fields = getAndValidateFields(entity);
 
+        var isRecord = isRecord(entity);
+
         var constructor = resolveConstructor(entity, fields);
         var hasCanonicalConstructor = !constructor.getParameters().isEmpty();
         entitySpecBuilder.withConstructorElement(constructor).withCanonicalConstructor(hasCanonicalConstructor);
 
-        var fieldSpecs = resolveFieldSpecs(entity, fields, hasCanonicalConstructor);
+        var fieldSpecs = resolveFieldSpecs(entity, fields, hasCanonicalConstructor, isRecord);
         entitySpecBuilder.withColumns(fieldSpecs);
 
         fieldSpecs.stream().filter(FieldSpec::isIdentity).findFirst().ifPresent(entitySpecBuilder::withIdentityColumn);
@@ -156,6 +158,17 @@ public class EntityAnalyzer {
         return fields;
     }
 
+    private boolean isRecord(TypeElement entity) {
+        try {
+            if (entity.getKind() == ElementKind.CLASS) {
+                return false;
+            }
+            return entity.getKind() == ElementKind.valueOf("RECORD");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private ExecutableElement resolveConstructor(TypeElement entity, List<VariableElement> fields) {
         var fieldType = fields.stream().map(VariableElement::asType).collect(Collectors.toList());
 
@@ -188,7 +201,7 @@ public class EntityAnalyzer {
     }
 
     private List<FieldSpec> resolveFieldSpecs(
-            TypeElement entity, List<VariableElement> fields, boolean hasCanonicalConstructor) {
+            TypeElement entity, List<VariableElement> fields, boolean hasCanonicalConstructor, boolean isRecord) {
         var fieldSpecs = new ArrayList<FieldSpec>();
 
         var candidateMethodMap = entity.getEnclosedElements().stream()
@@ -206,7 +219,7 @@ public class EntityAnalyzer {
                     .withIdentity(columnAnnotation.identity())
                     .withFieldElement(field);
 
-            var getter = candidateMethodMap.get(getterName(field));
+            var getter = candidateMethodMap.get(getterName(field, isRecord));
             if (getter != null
                     && getter.getParameters().isEmpty()
                     && field.asType().equals(getter.getReturnType())) {
@@ -245,7 +258,11 @@ public class EntityAnalyzer {
         return fieldSpecs;
     }
 
-    private String getterName(VariableElement field) {
+    private String getterName(VariableElement field, boolean isRecord) {
+        if (isRecord) {
+            return field.getSimpleName().toString();
+        }
+
         return BeanUtil.getterName(
                 field.getSimpleName().toString(),
                 processingEnv.getTypeUtils().getPrimitiveType(TypeKind.BOOLEAN).equals(field.asType()));
