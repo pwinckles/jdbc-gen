@@ -1,12 +1,16 @@
 package com.pwinckles.jdbcgen.filter;
 
+import java.util.Collection;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 /**
  * Constructs a predicate for an enum value.
  *
  * @param <B> the entity's filter builder type
  * @param <T> the enum value's type
  */
-public class EnumPredicateBuilder<B, T extends Enum<T>> extends CollectionPredicateBuilder<B, T> {
+public class EnumPredicateBuilder<B, T extends Enum<T>> {
 
     private final String field;
     private final Filter filter;
@@ -18,7 +22,6 @@ public class EnumPredicateBuilder<B, T extends Enum<T>> extends CollectionPredic
      * @param helper the entity's filter builder helper
      */
     public EnumPredicateBuilder(String field, Filter filter, FilterBuilderHelper<B> helper) {
-        super(field, filter, helper);
         this.field = field;
         this.filter = filter;
         this.helper = helper;
@@ -31,7 +34,7 @@ public class EnumPredicateBuilder<B, T extends Enum<T>> extends CollectionPredic
      * @return conjunction builder
      */
     public ConjunctionBuilder<B> isEqualTo(T value) {
-        filter.add(new Predicate(field, Operation.EQUAL, value == null ? null : value.name()));
+        filter.add(new Predicate(field, Operation.EQUAL, toStringValue(value)));
         return helper.conjunctionBuilder();
     }
 
@@ -42,7 +45,7 @@ public class EnumPredicateBuilder<B, T extends Enum<T>> extends CollectionPredic
      * @return conjunction builder
      */
     public ConjunctionBuilder<B> isNotEqualTo(T value) {
-        filter.add(new Predicate(field, Operation.NOT_EQUAL, value == null ? null : value.name()));
+        filter.add(new Predicate(field, Operation.NOT_EQUAL, toStringValue(value)));
         return helper.conjunctionBuilder();
     }
 
@@ -62,5 +65,35 @@ public class EnumPredicateBuilder<B, T extends Enum<T>> extends CollectionPredic
      */
     public ConjunctionBuilder<B> isNotNull() {
         return isNotEqualTo(null);
+    }
+
+    /**
+     * Adds a predicate that filters for values that match the values specified in the collection.
+     *
+     * @param values the values to match
+     * @return conjunction builder
+     */
+    public ConjunctionBuilder<B> isIn(Collection<T> values) {
+        Objects.requireNonNull(values, "values cannot be null");
+        filter.add(InListPredicate.inList(
+                field, values.stream().map(this::toStringValue).collect(Collectors.toList())));
+        return helper.conjunctionBuilder();
+    }
+
+    /**
+     * Adds a predicate that filters for values that do not match the values specified in the collection.
+     *
+     * @param values the values to not match
+     * @return conjunction builder
+     */
+    public ConjunctionBuilder<B> isNotIn(Collection<T> values) {
+        Objects.requireNonNull(values, "values cannot be null");
+        filter.add(InListPredicate.notInList(
+                field, values.stream().map(this::toStringValue).collect(Collectors.toList())));
+        return helper.conjunctionBuilder();
+    }
+
+    private String toStringValue(T value) {
+        return value == null ? null : value.name();
     }
 }
