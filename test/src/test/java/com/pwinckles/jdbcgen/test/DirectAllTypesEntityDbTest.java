@@ -15,8 +15,8 @@ public class DirectAllTypesEntityDbTest
                 DirectAllTypesEntity,
                 Long,
                 DirectAllTypesEntityDb.Patch,
-                DirectAllTypesEntityDb.Column,
-                DirectAllTypesEntityDb.FilterBuilder> {
+                DirectAllTypesEntityDb.FilterBuilder,
+                DirectAllTypesEntityDb.SortBuilder> {
 
     public DirectAllTypesEntityDbTest() {
         super(new DirectAllTypesEntityDb());

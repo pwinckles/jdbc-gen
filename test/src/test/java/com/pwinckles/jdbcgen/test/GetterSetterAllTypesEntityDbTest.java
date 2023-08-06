@@ -3,7 +3,6 @@ package com.pwinckles.jdbcgen.test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.pwinckles.jdbcgen.OrderDirection;
 import com.pwinckles.jdbcgen.test.util.TestUtil;
 import java.sql.Connection;
 import java.sql.Date;
@@ -26,8 +25,8 @@ public class GetterSetterAllTypesEntityDbTest
                 GetterSetterAllTypesEntity,
                 Long,
                 GetterSetterAllTypesEntityDb.Patch,
-                GetterSetterAllTypesEntityDb.Column,
-                GetterSetterAllTypesEntityDb.FilterBuilder> {
+                GetterSetterAllTypesEntityDb.FilterBuilder,
+                GetterSetterAllTypesEntityDb.SortBuilder> {
 
     public GetterSetterAllTypesEntityDbTest() {
         super(new GetterSetterAllTypesEntityDb());
@@ -47,19 +46,49 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(originals, conn);
 
-            var results = db.selectAll(GetterSetterAllTypesEntityDb.Column.LONG_ID, OrderDirection.ASCENDING, conn);
+            var results = db.selectAll(sb -> sb.longIdAsc(), conn);
             assertEntities(originals, results);
 
-            results = db.selectAll(GetterSetterAllTypesEntityDb.Column.STRING, OrderDirection.DESCENDING, conn);
+            results = db.selectAll(sb -> sb.stringDesc(), conn);
             assertEntities(originals, results);
 
             Collections.reverse(originals);
 
-            results = db.selectAll(GetterSetterAllTypesEntityDb.Column.LONG_ID, OrderDirection.DESCENDING, conn);
+            results = db.selectAll(sb -> sb.longIdDesc(), conn);
             assertEntities(originals, results);
 
-            results = db.selectAll(GetterSetterAllTypesEntityDb.Column.STRING, OrderDirection.ASCENDING, conn);
+            results = db.selectAll(sb -> sb.stringAsc(), conn);
             assertEntities(originals, results);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void selectAllOrderByMultiple(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var originals = List.of(
+                    newEntityWithId().setString("c"), // 0
+                    newEntityWithId().setString("a"), // 1
+                    newEntityWithId().setString("b"), // 2
+                    newEntityWithId().setString("b"), // 3
+                    newEntityWithId().setString("b"), // 4
+                    newEntityWithId().setString("a") // 5
+                    );
+
+            db.insert(originals, conn);
+
+            var results = db.selectAll(sb -> sb.stringAsc().longIdDesc(), conn);
+            assertEntities(
+                    List.of(
+                            originals.get(5),
+                            originals.get(1),
+                            originals.get(4),
+                            originals.get(3),
+                            originals.get(2),
+                            originals.get(0)),
+                    results);
         }
     }
 

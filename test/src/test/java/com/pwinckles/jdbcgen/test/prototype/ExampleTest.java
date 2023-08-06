@@ -1,6 +1,5 @@
 package com.pwinckles.jdbcgen.test.prototype;
 
-import com.pwinckles.jdbcgen.OrderDirection;
 import com.pwinckles.jdbcgen.test.util.TestUtil;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -131,18 +130,18 @@ public class ExampleTest {
 
             exampleDb.insert(originals, conn);
 
-            var results = exampleDb.selectAll(ExampleDb.Column.ID, OrderDirection.ASCENDING, conn);
+            var results = exampleDb.selectAll(sb -> sb.idAsc(), conn);
             assertEntities(originals, results);
 
-            results = exampleDb.selectAll(ExampleDb.Column.NAME, OrderDirection.DESCENDING, conn);
+            results = exampleDb.selectAll(sb -> sb.nameDesc(), conn);
             assertEntities(originals, results);
 
             Collections.reverse(originals);
 
-            results = exampleDb.selectAll(ExampleDb.Column.ID, OrderDirection.DESCENDING, conn);
+            results = exampleDb.selectAll(sb -> sb.idDesc(), conn);
             assertEntities(originals, results);
 
-            results = exampleDb.selectAll(ExampleDb.Column.NAME, OrderDirection.ASCENDING, conn);
+            results = exampleDb.selectAll(sb -> sb.nameAsc(), conn);
             assertEntities(originals, results);
         }
     }

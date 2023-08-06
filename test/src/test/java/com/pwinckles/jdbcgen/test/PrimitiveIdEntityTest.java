@@ -11,8 +11,8 @@ public class PrimitiveIdEntityTest
                 PrimitiveIdEntity,
                 Long,
                 PrimitiveIdEntityDb.Patch,
-                PrimitiveIdEntityDb.Column,
-                PrimitiveIdEntityDb.FilterBuilder> {
+                PrimitiveIdEntityDb.FilterBuilder,
+                PrimitiveIdEntityDb.SortBuilder> {
 
     protected PrimitiveIdEntityTest() {
         super(new PrimitiveIdEntityDb());

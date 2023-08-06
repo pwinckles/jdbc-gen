@@ -15,8 +15,8 @@ public class DirectAllTypesEntityInnerDbTest
                 Wrapper.DirectAllTypesEntity,
                 Long,
                 DirectAllTypesEntityInnerDb.Patch,
-                DirectAllTypesEntityInnerDb.Column,
-                DirectAllTypesEntityInnerDb.FilterBuilder> {
+                DirectAllTypesEntityInnerDb.FilterBuilder,
+                DirectAllTypesEntityInnerDb.SortBuilder> {
 
     public DirectAllTypesEntityInnerDbTest() {
         super(new DirectAllTypesEntityInnerDb());

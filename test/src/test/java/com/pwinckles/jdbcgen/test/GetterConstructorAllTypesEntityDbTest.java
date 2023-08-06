@@ -15,8 +15,8 @@ public class GetterConstructorAllTypesEntityDbTest
                 GetterConstructorAllTypesEntity,
                 Long,
                 GetterConstructorAllTypesEntityDb.Patch,
-                GetterConstructorAllTypesEntityDb.Column,
-                GetterConstructorAllTypesEntityDb.FilterBuilder> {
+                GetterConstructorAllTypesEntityDb.FilterBuilder,
+                GetterConstructorAllTypesEntityDb.SortBuilder> {
 
     public GetterConstructorAllTypesEntityDbTest() {
         super(new GetterConstructorAllTypesEntityDb());
