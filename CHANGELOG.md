@@ -15,6 +15,7 @@
 - Add support for ordering by multiple fields
 - Add basic enum support
 - Add pagination support
+- Add `patch()` function on db classes as a convenience for creating patch objects
 
 ## [1.0.1] - 2023-07-26
 

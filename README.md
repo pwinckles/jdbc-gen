@@ -110,7 +110,7 @@ var id = exampleDb.insert(new Example()
         .setTimestamp(Instant.now()), conn);
 
 // update a single field on an existing entity
-exampleDb.update(id, new ExambleDb.Patch().setValue("updated"), conn);
+exampleDb.update(id, ExambleDb.patch().setValue("updated"), conn);
 
 // select all entities, ordered by a specific column
 var examples = exampleDb.select(select -> select.sort(orderBy -> orderBy.valueAsc()), conn);

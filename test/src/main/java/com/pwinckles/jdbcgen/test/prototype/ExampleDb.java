@@ -52,6 +52,15 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
     }
 
     /**
+     * Creates a new patch object to use for partially updating an entity.
+     *
+     * @return new patch
+     */
+    public static Patch patch() {
+        return new Patch();
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override

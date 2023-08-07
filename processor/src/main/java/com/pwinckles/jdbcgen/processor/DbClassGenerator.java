@@ -92,6 +92,7 @@ public class DbClassGenerator {
         builder.addType(genPatchClass(entityType, patchType, idType, entitySpec))
                 .addType(genFilterBuilderClass(entityType, filterBuilderType, entitySpec))
                 .addType(genSortBuilderClass(entityType, sortBuilderType, entitySpec))
+                .addMethod(genPatchFunction(patchType))
                 .addMethod(genSelect(entityType, idType, entitySpec))
                 .addMethod(genSelect(entityType, filterBuilderType, sortBuilderType, entitySpec))
                 .addMethod(genSelectAll(entityType, entitySpec))
@@ -271,6 +272,17 @@ public class DbClassGenerator {
         });
 
         return builder.build();
+    }
+
+    private MethodSpec genPatchFunction(TypeName patchType) {
+        return MethodSpec.methodBuilder("patch")
+                .addJavadoc("Creates a new patch object to use for partially updating an entity.\n")
+                .addJavadoc("\n")
+                .addJavadoc("@return new patch")
+                .addModifiers(PUBLIC, STATIC)
+                .returns(patchType)
+                .addStatement("return new $T()", patchType)
+                .build();
     }
 
     private MethodSpec genSelect(TypeName entityType, TypeName idType, EntitySpec entitySpec) {

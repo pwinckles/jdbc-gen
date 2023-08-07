@@ -985,7 +985,7 @@ public class GetterSetterAllTypesEntityDbTest
 
     @Override
     protected GetterSetterAllTypesEntityDb.Patch patchAll(GetterSetterAllTypesEntity entity) {
-        return new GetterSetterAllTypesEntityDb.Patch()
+        return GetterSetterAllTypesEntityDb.patch()
                 .setLongPrim(entity.getLongPrim())
                 .setIntObj(entity.getIntObj())
                 .setIntPrim(entity.getIntPrim())
@@ -1028,7 +1028,7 @@ public class GetterSetterAllTypesEntityDbTest
 
     @Override
     protected GetterSetterAllTypesEntityDb.Patch nullPatchAll() {
-        return new GetterSetterAllTypesEntityDb.Patch()
+        return GetterSetterAllTypesEntityDb.patch()
                 .setIntObj(null)
                 .setShortObj(null)
                 .setDoubleObj(null)
@@ -1056,7 +1056,7 @@ public class GetterSetterAllTypesEntityDbTest
 
         return ImmutablePair.of(
                 updated,
-                new GetterSetterAllTypesEntityDb.Patch()
+                GetterSetterAllTypesEntityDb.patch()
                         .setString(updated.getString())
                         .setUuid(updated.getUuid())
                         .setInstant(updated.getInstant())
