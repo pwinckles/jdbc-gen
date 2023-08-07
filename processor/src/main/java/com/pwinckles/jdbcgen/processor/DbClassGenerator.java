@@ -10,6 +10,7 @@ import com.google.common.base.CaseFormat;
 import com.pwinckles.jdbcgen.BasePatch;
 import com.pwinckles.jdbcgen.JdbcGenDb;
 import com.pwinckles.jdbcgen.JdbcGenUtil;
+import com.pwinckles.jdbcgen.SelectBuilder;
 import com.pwinckles.jdbcgen.filter.BooleanPredicateBuilder;
 import com.pwinckles.jdbcgen.filter.ConjunctionBuilder;
 import com.pwinckles.jdbcgen.filter.DoublePredicateBuilder;
@@ -24,7 +25,7 @@ import com.pwinckles.jdbcgen.filter.ObjectPredicateBuilder;
 import com.pwinckles.jdbcgen.filter.PrimitiveBooleanPredicateBuilder;
 import com.pwinckles.jdbcgen.filter.ShortPredicateBuilder;
 import com.pwinckles.jdbcgen.filter.StringPredicateBuilder;
-import com.pwinckles.jdbcgen.sort.SortBuilder;
+import com.pwinckles.jdbcgen.sort.Sort;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
@@ -92,10 +93,8 @@ public class DbClassGenerator {
                 .addType(genFilterBuilderClass(entityType, filterBuilderType, entitySpec))
                 .addType(genSortBuilderClass(entityType, sortBuilderType, entitySpec))
                 .addMethod(genSelect(entityType, idType, entitySpec))
-                .addMethod(genSelectFiltered(entityType, filterBuilderType, entitySpec))
                 .addMethod(genSelectFilteredSorted(entityType, filterBuilderType, sortBuilderType, entitySpec))
                 .addMethod(genSelectAll(entityType, entitySpec))
-                .addMethod(genSelectAllOrdered(entityType, sortBuilderType, entitySpec))
                 .addMethod(genCount(entitySpec))
                 .addMethod(genCountFiltered(filterBuilderType, entitySpec))
                 .addMethod(genInsert(entityType, idType, entitySpec))
@@ -243,13 +242,11 @@ public class DbClassGenerator {
                 .addModifiers(PUBLIC, STATIC)
                 .addAnnotation(generatedAnnotation())
                 .addJavadoc("Constructs a SQL ORDER BY clause.", entityType)
-                .addField(SortBuilder.class, "sortBuilder", PRIVATE, FINAL)
+                .addField(Sort.class, "sort", PRIVATE, FINAL)
                 .addMethod(MethodSpec.constructorBuilder()
                         .addModifiers(PUBLIC)
-                        .addParameter(SortBuilder.class, "sortBuilder")
-                        .addStatement(
-                                "this.sortBuilder = $T.requireNonNull(sortBuilder, \"sortBuilder cannot be null\")",
-                                Objects.class)
+                        .addParameter(Sort.class, "sort")
+                        .addStatement("this.sort = $T.requireNonNull(sort, \"sort cannot be null\")", Objects.class)
                         .build());
 
         entitySpec.getFields().forEach(fieldSpec -> {
@@ -259,7 +256,7 @@ public class DbClassGenerator {
                     .addJavadoc("@return the builder to use to specify additional ordering")
                     .addModifiers(PUBLIC)
                     .returns(sortBuilderType)
-                    .addStatement("sortBuilder.asc(\"$L\")", fieldSpec.getColumnName())
+                    .addStatement("sort.asc(\"$L\")", fieldSpec.getColumnName())
                     .addStatement("return this")
                     .build());
             builder.addMethod(MethodSpec.methodBuilder(fieldSpec.getFieldName() + "Desc")
@@ -268,7 +265,7 @@ public class DbClassGenerator {
                     .addJavadoc("@return the builder to use to specify additional ordering")
                     .addModifiers(PUBLIC)
                     .returns(sortBuilderType)
-                    .addStatement("sortBuilder.desc(\"$L\")", fieldSpec.getColumnName())
+                    .addStatement("sort.desc(\"$L\")", fieldSpec.getColumnName())
                     .addStatement("return this")
                     .build());
         });
@@ -299,37 +296,6 @@ public class DbClassGenerator {
                 .build();
     }
 
-    private MethodSpec genSelectFiltered(TypeName entityType, TypeName filterBuilderType, EntitySpec entitySpec) {
-        var query = "SELECT " + columnNames(entitySpec) + " FROM " + entitySpec.getTableName();
-        return MethodSpec.methodBuilder("select")
-                .addJavadoc("{@inheritDoc}")
-                .addAnnotation(Override.class)
-                .addModifiers(PUBLIC)
-                .returns(listType(entityType))
-                .addParameter(
-                        ParameterizedTypeName.get(ClassName.get(Consumer.class), filterBuilderType), "filterBuilder")
-                .addParameter(Connection.class, "conn")
-                .addException(SQLException.class)
-                .addStatement("var results = new $T<$T>()", ArrayList.class, entityType)
-                .addCode("\n")
-                .addStatement("var filter = new $T()", Filter.class)
-                .addStatement("filterBuilder.accept(new $T(filter))", filterBuilderType)
-                .addCode("\n")
-                .addStatement("var queryBuilder = new $T(\"$L\")", StringBuilder.class, query)
-                .addStatement("filter.buildQuery(queryBuilder)")
-                .addCode("\n")
-                .beginControlFlow("try (var stmt = conn.prepareStatement(queryBuilder.toString()))")
-                .addStatement("filter.addArguments(1, stmt)")
-                .addStatement("var rs = stmt.executeQuery()")
-                .beginControlFlow("while (rs.next())")
-                .addStatement("results.add(fromResultSet(rs))")
-                .endControlFlow()
-                .endControlFlow()
-                .addCode("\n")
-                .addStatement("return results")
-                .build();
-    }
-
     private MethodSpec genSelectFilteredSorted(
             TypeName entityType, TypeName filterBuilderType, TypeName sortBuilderType, EntitySpec entitySpec) {
         var query = "SELECT " + columnNames(entitySpec) + " FROM " + entitySpec.getTableName();
@@ -339,21 +305,27 @@ public class DbClassGenerator {
                 .addModifiers(PUBLIC)
                 .returns(listType(entityType))
                 .addParameter(
-                        ParameterizedTypeName.get(ClassName.get(Consumer.class), filterBuilderType), "filterBuilder")
-                .addParameter(ParameterizedTypeName.get(ClassName.get(Consumer.class), sortBuilderType), "sortBuilder")
+                        ParameterizedTypeName.get(
+                                ClassName.get(Consumer.class),
+                                ParameterizedTypeName.get(
+                                        ClassName.get(SelectBuilder.class), filterBuilderType, sortBuilderType)),
+                        "selectBuilder")
                 .addParameter(Connection.class, "conn")
                 .addException(SQLException.class)
                 .addStatement("var results = new $T<$T>()", ArrayList.class, entityType)
                 .addCode("\n")
                 .addStatement("var filter = new $T()", Filter.class)
-                .addStatement("filterBuilder.accept(new $T(filter))", filterBuilderType)
+                .addStatement("var sort = new $T()", Sort.class)
+                .addCode("\n")
+                .addStatement(
+                        "selectBuilder.accept(new $T<>(new $T(filter), new $T(sort)))",
+                        SelectBuilder.class,
+                        filterBuilderType,
+                        sortBuilderType)
                 .addCode("\n")
                 .addStatement("var queryBuilder = new $T(\"$L\")", StringBuilder.class, query)
                 .addStatement("filter.buildQuery(queryBuilder)")
-                .addCode("\n")
-                .addStatement("var sb = new $T()", SortBuilder.class)
-                .addStatement("sortBuilder.accept(new $T(sb))", sortBuilderType)
-                .addStatement("sb.buildQuery(queryBuilder)")
+                .addStatement("sort.buildQuery(queryBuilder)")
                 .addCode("\n")
                 .beginControlFlow("try (var stmt = conn.prepareStatement(queryBuilder.toString()))")
                 .addStatement("filter.addArguments(1, stmt)")
@@ -379,34 +351,6 @@ public class DbClassGenerator {
                 .addStatement("var results = new $T<$T>()", ArrayList.class, entityType)
                 .beginControlFlow("try (var stmt = conn.createStatement())")
                 .addStatement("var rs = stmt.executeQuery(\"$L\")", query)
-                .beginControlFlow("while (rs.next())")
-                .addStatement("results.add(fromResultSet(rs))")
-                .endControlFlow()
-                .endControlFlow()
-                .addStatement("return results")
-                .build();
-    }
-
-    private MethodSpec genSelectAllOrdered(TypeName entityType, TypeName sortBuilderType, EntitySpec entitySpec) {
-        var query = "SELECT " + columnNames(entitySpec) + " FROM " + entitySpec.getTableName();
-        return MethodSpec.methodBuilder("selectAll")
-                .addJavadoc("{@inheritDoc}")
-                .addAnnotation(Override.class)
-                .addModifiers(PUBLIC)
-                .returns(listType(entityType))
-                .addParameter(ParameterizedTypeName.get(ClassName.get(Consumer.class), sortBuilderType), "sortBuilder")
-                .addParameter(Connection.class, "conn")
-                .addException(SQLException.class)
-                .addStatement("var results = new $T<$T>()", ArrayList.class, entityType)
-                .addCode("\n")
-                .addStatement("var sb = new $T()", SortBuilder.class)
-                .addStatement("sortBuilder.accept(new $T(sb))", sortBuilderType)
-                .addCode("\n")
-                .addStatement("var queryBuilder = new $T(\"$L\")", StringBuilder.class, query)
-                .addStatement("sb.buildQuery(queryBuilder)")
-                .addCode("\n")
-                .beginControlFlow("try (var stmt = conn.createStatement())")
-                .addStatement("var rs = stmt.executeQuery(queryBuilder.toString())")
                 .beginControlFlow("while (rs.next())")
                 .addStatement("results.add(fromResultSet(rs))")
                 .endControlFlow()

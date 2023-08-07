@@ -1,13 +1,13 @@
 package com.pwinckles.jdbcgen.test.prototype;
 
-import com.pwinckles.jdbcgen.sort.SortBuilder;
+import com.pwinckles.jdbcgen.sort.Sort;
 import java.util.Objects;
 
 public class ExampleSortBuilder {
 
-    private final SortBuilder sortBuilder;
+    private final Sort sortBuilder;
 
-    public ExampleSortBuilder(SortBuilder sortBuilder) {
+    public ExampleSortBuilder(Sort sortBuilder) {
         this.sortBuilder = Objects.requireNonNull(sortBuilder, "sortBuilder cannot be null");
     }
 

@@ -2,8 +2,9 @@ package com.pwinckles.jdbcgen.test.prototype;
 
 import com.pwinckles.jdbcgen.BasePatch;
 import com.pwinckles.jdbcgen.JdbcGenDb;
+import com.pwinckles.jdbcgen.SelectBuilder;
 import com.pwinckles.jdbcgen.filter.Filter;
-import com.pwinckles.jdbcgen.sort.SortBuilder;
+import com.pwinckles.jdbcgen.sort.Sort;
 import com.pwinckles.jdbcgen.test.ExampleEnum;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -84,68 +85,23 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
     }
 
     @Override
-    public List<Example> select(Consumer<ExampleFilterBuilder> filterBuilder, Connection conn) throws SQLException {
-        var results = new ArrayList<Example>();
-
-        var filter = new Filter();
-        filterBuilder.accept(new ExampleFilterBuilder(filter));
-
-        var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp, enum FROM example");
-        filter.buildQuery(queryBuilder);
-
-        try (var stmt = conn.prepareStatement(queryBuilder.toString())) {
-            filter.addArguments(1, stmt);
-            var rs = stmt.executeQuery();
-            while (rs.next()) {
-                results.add(fromResultSet(rs));
-            }
-        }
-
-        return results;
-    }
-
-    @Override
     public List<Example> select(
-            Consumer<ExampleFilterBuilder> filterBuilder, Consumer<ExampleSortBuilder> sortBuilder, Connection conn)
+            Consumer<SelectBuilder<ExampleFilterBuilder, ExampleSortBuilder>> selectBuilder, Connection conn)
             throws SQLException {
         var results = new ArrayList<Example>();
 
         var filter = new Filter();
-        filterBuilder.accept(new ExampleFilterBuilder(filter));
+        var sort = new Sort();
+
+        selectBuilder.accept(new SelectBuilder<>(new ExampleFilterBuilder(filter), new ExampleSortBuilder(sort)));
 
         var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp, enum FROM example");
         filter.buildQuery(queryBuilder);
-
-        var sb = new SortBuilder();
-        sortBuilder.accept(new ExampleSortBuilder(sb));
-        sb.buildQuery(queryBuilder);
+        sort.buildQuery(queryBuilder);
 
         try (var stmt = conn.prepareStatement(queryBuilder.toString())) {
             filter.addArguments(1, stmt);
             var rs = stmt.executeQuery();
-            while (rs.next()) {
-                results.add(fromResultSet(rs));
-            }
-        }
-
-        return results;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<Example> selectAll(Consumer<ExampleSortBuilder> sortBuilder, Connection conn) throws SQLException {
-        var results = new ArrayList<Example>();
-
-        var sb = new SortBuilder();
-        sortBuilder.accept(new ExampleSortBuilder(sb));
-
-        var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp, enum FROM example");
-        sb.buildQuery(queryBuilder);
-
-        try (var stmt = conn.createStatement()) {
-            var rs = stmt.executeQuery(queryBuilder.toString());
             while (rs.next()) {
                 results.add(fromResultSet(rs));
             }

@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Constructs a SQL ORDER BY clause
  */
-public class SortBuilder {
+public class Sort {
 
     private final List<SortBy> sortByColumns = new ArrayList<>();
 

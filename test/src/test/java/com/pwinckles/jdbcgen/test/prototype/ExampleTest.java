@@ -131,18 +131,18 @@ public class ExampleTest {
 
             exampleDb.insert(originals, conn);
 
-            var results = exampleDb.selectAll(sb -> sb.idAsc(), conn);
+            var results = exampleDb.select(sb -> sb.sort(s -> s.idAsc()), conn);
             assertEntities(originals, results);
 
-            results = exampleDb.selectAll(sb -> sb.nameDesc(), conn);
+            results = exampleDb.select(sb -> sb.sort(s -> s.nameDesc()), conn);
             assertEntities(originals, results);
 
             Collections.reverse(originals);
 
-            results = exampleDb.selectAll(sb -> sb.idDesc(), conn);
+            results = exampleDb.select(sb -> sb.sort(s -> s.idDesc()), conn);
             assertEntities(originals, results);
 
-            results = exampleDb.selectAll(sb -> sb.nameAsc(), conn);
+            results = exampleDb.select(sb -> sb.sort(s -> s.nameAsc()), conn);
             assertEntities(originals, results);
         }
     }
@@ -161,22 +161,23 @@ public class ExampleTest {
 
             exampleDb.insert(originals, conn);
 
-            var results =
-                    exampleDb.select(fb -> fb.name().isEqualTo("b").or().count().isGreaterThan(10), conn);
+            var results = exampleDb.select(
+                    sb -> sb.filter(f -> f.name().isEqualTo("b").or().count().isGreaterThan(10)), conn);
             assertEntities(List.of(originals.get(1), originals.get(2)), results);
 
             results = exampleDb.select(
-                    fb -> fb.group(gb -> gb.name().isEqualTo("a").and().count().isEqualTo(10))
+                    sb -> sb.filter(f -> f.group(
+                                    g -> g.name().isEqualTo("a").and().count().isEqualTo(10))
                             .or()
                             .name()
-                            .isEqualTo("c"),
+                            .isEqualTo("c")),
                     conn);
             assertEntities(List.of(originals.get(1)), results);
 
-            results = exampleDb.select(fb -> fb.name().isIn(List.of("a", "d")), conn);
+            results = exampleDb.select(sb -> sb.filter(f -> f.name().isIn(List.of("a", "d"))), conn);
             assertEntities(List.of(originals.get(0), originals.get(3)), results);
 
-            results = exampleDb.select(fb -> fb.count().isNotIn(List.of(10L, 20L, 30L, 100L)), conn);
+            results = exampleDb.select(sb -> sb.filter(f -> f.count().isNotIn(List.of(10L, 20L, 30L, 100L))), conn);
             assertEntities(List.of(originals.get(2), originals.get(3)), results);
         }
     }
