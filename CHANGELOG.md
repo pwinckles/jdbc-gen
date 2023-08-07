@@ -2,6 +2,8 @@
 
 ## [Unreleased] - ReleaseDate
 
+## [1.1.0] - 2023-08-07
+
 ## Breaking changes
 
 - The mechanism for specifying the sort order has changed
@@ -28,6 +30,7 @@
 
 Initial release
 
-[Unreleased]: https://github.com/pwinckles/jdbc-gen/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/pwinckles/jdbc-gen/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/pwinckles/jdbc-gen/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/pwinckles/jdbc-gen/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/pwinckles/jdbc-gen/releases/tag/v1.0.0
