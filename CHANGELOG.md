@@ -12,6 +12,7 @@
 - Add support for records
 - Add support for ordering by multiple fields
 - Add basic enum support
+- Add pagination support
 
 ## [1.0.1] - 2023-07-26
 

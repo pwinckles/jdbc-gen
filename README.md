@@ -113,13 +113,19 @@ var id = exampleDb.insert(new Example()
 exampleDb.update(id, new ExambleDb.Patch().setValue("updated"), conn);
 
 // select all entities, ordered by a specific column
-var examples = exampleDb.selectAll(orderBy -> orderBy.valueAsc(), conn);
+var examples = exampleDb.select(select -> select.sort(orderBy -> orderBy.valueAsc()), conn);
 
 // select all entities that match a filter
-var filtered = exambleDb.select(entity -> entity
+var filtered = exambleDb.select(select -> select.filter(entity -> entity
         .value().isEqualTo("test")
         .and()
-        .timestamp().isGreaterThan(Instant.now().minusWeeks(1)), conn);
+        .timestamp().isGreaterThan(Instant.now().minusWeeks(1))), conn);
+
+// select all entities that match a filter with sorting and paging
+var filtered = exambleDb.select(select -> select
+        .filter(entity -> entity.value().isEqualTo("test"))
+        .sort(orderBy -> orderBy.timestampAsc())
+        .paginate(0, 100), conn);
 
 // delete an entity
 exampleDb.delete(id, conn);
@@ -136,6 +142,5 @@ example, `@JdbcGen(name = "MyExampleDao")` would produce a class named `MyExampl
 
 In the future, support may be added for the following features:
 
-1. `SELECT` query paging
-2. Joins
-3. Inheritance?
+1. Joins
+2. Inheritance

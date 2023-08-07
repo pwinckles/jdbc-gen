@@ -93,7 +93,7 @@ public class DbClassGenerator {
                 .addType(genFilterBuilderClass(entityType, filterBuilderType, entitySpec))
                 .addType(genSortBuilderClass(entityType, sortBuilderType, entitySpec))
                 .addMethod(genSelect(entityType, idType, entitySpec))
-                .addMethod(genSelectFilteredSorted(entityType, filterBuilderType, sortBuilderType, entitySpec))
+                .addMethod(genSelect(entityType, filterBuilderType, sortBuilderType, entitySpec))
                 .addMethod(genSelectAll(entityType, entitySpec))
                 .addMethod(genCount(entitySpec))
                 .addMethod(genCountFiltered(filterBuilderType, entitySpec))
@@ -296,7 +296,7 @@ public class DbClassGenerator {
                 .build();
     }
 
-    private MethodSpec genSelectFilteredSorted(
+    private MethodSpec genSelect(
             TypeName entityType, TypeName filterBuilderType, TypeName sortBuilderType, EntitySpec entitySpec) {
         var query = "SELECT " + columnNames(entitySpec) + " FROM " + entitySpec.getTableName();
         return MethodSpec.methodBuilder("select")
@@ -316,9 +316,10 @@ public class DbClassGenerator {
                 .addCode("\n")
                 .addStatement("var filter = new $T()", Filter.class)
                 .addStatement("var sort = new $T()", Sort.class)
+                .addStatement("var paginate = new $T()", SelectBuilder.Paginate.class)
                 .addCode("\n")
                 .addStatement(
-                        "selectBuilder.accept(new $T<>(new $T(filter), new $T(sort)))",
+                        "selectBuilder.accept(new $T<>(new $T(filter), new $T(sort), paginate))",
                         SelectBuilder.class,
                         filterBuilderType,
                         sortBuilderType)
@@ -326,6 +327,7 @@ public class DbClassGenerator {
                 .addStatement("var queryBuilder = new $T(\"$L\")", StringBuilder.class, query)
                 .addStatement("filter.buildQuery(queryBuilder)")
                 .addStatement("sort.buildQuery(queryBuilder)")
+                .addStatement("paginate.buildQuery(queryBuilder)")
                 .addCode("\n")
                 .beginControlFlow("try (var stmt = conn.prepareStatement(queryBuilder.toString()))")
                 .addStatement("filter.addArguments(1, stmt)")
