@@ -5,12 +5,12 @@
     <parent>
         <groupId>com.pwinckles.jdbcgen</groupId>
         <artifactId>jdbc-gen-parent</artifactId>
-        <version>1.0.2-SNAPSHOT</version>
+        <version>1.1.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>jdbc-gen-processor</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.1.0</version>
 
     <name>jdbc-gen-processor</name>
     <description>Annotation processor for jdbc-gen</description>
@@ -19,7 +19,7 @@
         <dependency>
             <groupId>com.pwinckles.jdbcgen</groupId>
             <artifactId>jdbc-gen-api</artifactId>
-            <version>1.0.2-SNAPSHOT</version>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>com.squareup</groupId>
