@@ -4,7 +4,7 @@
 
 ## [1.1.0] - 2023-08-07
 
-## Breaking changes
+### Breaking changes
 
 - The mechanism for specifying the sort order has changed
 
