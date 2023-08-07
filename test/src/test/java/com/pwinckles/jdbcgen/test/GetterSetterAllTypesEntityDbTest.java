@@ -46,18 +46,18 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(originals, conn);
 
-            var results = db.selectAll(sb -> sb.longIdAsc(), conn);
+            var results = db.select(sb -> sb.sort(s -> s.longIdAsc()), conn);
             assertEntities(originals, results);
 
-            results = db.selectAll(sb -> sb.stringDesc(), conn);
+            results = db.select(sb -> sb.sort(s -> s.stringDesc()), conn);
             assertEntities(originals, results);
 
             Collections.reverse(originals);
 
-            results = db.selectAll(sb -> sb.longIdDesc(), conn);
+            results = db.select(sb -> sb.sort(s -> s.longIdDesc()), conn);
             assertEntities(originals, results);
 
-            results = db.selectAll(sb -> sb.stringAsc(), conn);
+            results = db.select(sb -> sb.sort(s -> s.stringAsc()), conn);
             assertEntities(originals, results);
         }
     }
@@ -79,7 +79,7 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(originals, conn);
 
-            var results = db.selectAll(sb -> sb.stringAsc().longIdDesc(), conn);
+            var results = db.select(sb -> sb.sort(s -> s.stringAsc().longIdDesc()), conn);
             assertEntities(
                     List.of(
                             originals.get(5),
@@ -109,7 +109,8 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(originals, conn);
 
-            var results = db.select(fb -> fb.string().isEqualTo("b"), sb -> sb.longIdDesc(), conn);
+            var results =
+                    db.select(sb -> sb.filter(f -> f.string().isEqualTo("b")).sort(s -> s.longIdDesc()), conn);
             assertEntities(List.of(originals.get(4), originals.get(3), originals.get(2)), results);
         }
     }
@@ -137,54 +138,58 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(entities, conn);
 
-            var selected = db.select(fb -> fb.string().isLike("test-%"), conn);
+            var selected = db.select(sb -> sb.filter(f -> f.string().isLike("test-%")), conn);
             assertEntities(listWith(entities, 2, 6, 9), selected);
 
-            selected = db.select(fb -> fb.string().isLikeInsensitive("TesT-%"), conn);
+            selected = db.select(sb -> sb.filter(f -> f.string().isLikeInsensitive("TesT-%")), conn);
             assertEntities(listWith(entities, 2, 3, 4, 6, 9), selected);
 
-            selected = db.select(fb -> fb.string().isNotLike("test-%"), conn);
+            selected = db.select(sb -> sb.filter(f -> f.string().isNotLike("test-%")), conn);
             assertEntities(listWithout(entities, 2, 6, 9, 10, 11), selected);
 
-            selected = db.select(fb -> fb.string().isNotLikeInsensitive("tESt-%"), conn);
+            selected = db.select(sb -> sb.filter(f -> f.string().isNotLikeInsensitive("tESt-%")), conn);
             assertEntities(listWithout(entities, 2, 3, 4, 6, 9, 10, 11), selected);
 
-            selected = db.select(fb -> fb.string().isEqualTo("TEST-1"), conn);
+            selected = db.select(sb -> sb.filter(f -> f.string().isEqualTo("TEST-1")), conn);
             assertEntities(listWith(entities, 3, 4), selected);
 
-            selected = db.select(fb -> fb.string().isEqualToInsensitive("TEST-1"), conn);
+            selected = db.select(sb -> sb.filter(f -> f.string().isEqualToInsensitive("TEST-1")), conn);
             assertEntities(listWith(entities, 2, 3, 4), selected);
 
-            selected = db.select(fb -> fb.string().isNotEqualTo("example"), conn);
+            selected = db.select(sb -> sb.filter(f -> f.string().isNotEqualTo("example")), conn);
             assertEntities(listWithout(entities, 1, 10, 11), selected);
 
-            selected = db.select(fb -> fb.string().isNotEqualToInsensitive("EXAMPLE"), conn);
+            selected = db.select(sb -> sb.filter(f -> f.string().isNotEqualToInsensitive("EXAMPLE")), conn);
             assertEntities(listWithout(entities, 1, 10, 11), selected);
 
-            selected = db.select(fb -> fb.string().isNull(), conn);
+            selected = db.select(sb -> sb.filter(f -> f.string().isNull()), conn);
             assertEntities(listWith(entities, 10, 11), selected);
 
-            selected = db.select(fb -> fb.string().isNotNull(), conn);
+            selected = db.select(sb -> sb.filter(f -> f.string().isNotNull()), conn);
             assertEntities(listWithout(entities, 10, 11), selected);
 
-            selected = db.select(fb -> fb.string().isIn(List.of("a", "z")), conn);
+            selected = db.select(sb -> sb.filter(f -> f.string().isIn(List.of("a", "z"))), conn);
             assertEntities(listWith(entities, 0, 7), selected);
 
-            selected = db.select(fb -> fb.string().isNotIn(List.of("a", "w", "z")), conn);
+            selected = db.select(sb -> sb.filter(f -> f.string().isNotIn(List.of("a", "w", "z"))), conn);
             assertEntities(listWithout(entities, 0, 7, 8, 10, 11), selected);
 
             selected = db.select(
-                    fb -> fb.string().isIn(List.of("a", "z")).or().string().isEqualTo("example"), conn);
+                    sb -> sb.filter(f ->
+                            f.string().isIn(List.of("a", "z")).or().string().isEqualTo("example")),
+                    conn);
             assertEntities(listWith(entities, 0, 1, 7), selected);
 
             selected = db.select(
-                    fb -> fb.string().isNotLike("test-%").or().string().isNull(), conn);
+                    sb -> sb.filter(
+                            f -> f.string().isNotLike("test-%").or().string().isNull()),
+                    conn);
             assertEntities(listWithout(entities, 2, 6, 9), selected);
 
-            selected = db.select(fb -> fb.string().isGreaterThanOrEqualTo("w"), conn);
+            selected = db.select(sb -> sb.filter(f -> f.string().isGreaterThanOrEqualTo("w")), conn);
             assertEntities(listWith(entities, 7, 8), selected);
 
-            selected = db.select(fb -> fb.string().isEqualTo("blahblah"), conn);
+            selected = db.select(sb -> sb.filter(f -> f.string().isEqualTo("blahblah")), conn);
             assertThat(selected).isEmpty();
         }
     }
@@ -207,19 +212,19 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(entities, conn);
 
-            var selected = db.select(fb -> fb.boolPrim().isTrue(), conn);
+            var selected = db.select(sb -> sb.filter(f -> f.boolPrim().isTrue()), conn);
             assertEntities(listWith(entities, 0, 1, 3, 5), selected);
 
-            selected = db.select(fb -> fb.boolObj().isTrue(), conn);
+            selected = db.select(sb -> sb.filter(f -> f.boolObj().isTrue()), conn);
             assertEntities(listWith(entities, 0, 1, 3), selected);
 
-            selected = db.select(fb -> fb.boolPrim().isFalse(), conn);
+            selected = db.select(sb -> sb.filter(f -> f.boolPrim().isFalse()), conn);
             assertEntities(listWith(entities, 2, 4, 6), selected);
 
-            selected = db.select(fb -> fb.boolObj().isFalse(), conn);
+            selected = db.select(sb -> sb.filter(f -> f.boolObj().isFalse()), conn);
             assertEntities(listWith(entities, 2, 4), selected);
 
-            selected = db.select(fb -> fb.boolObj().isNull(), conn);
+            selected = db.select(sb -> sb.filter(f -> f.boolObj().isNull()), conn);
             assertEntities(listWith(entities, 5, 6), selected);
         }
     }
@@ -247,32 +252,34 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(entities, conn);
 
-            var selected = db.select(fb -> fb.longPrim().isEqualTo(2L), conn);
+            var selected = db.select(sb -> sb.filter(f -> f.longPrim().isEqualTo(2L)), conn);
             assertEntities(listWith(entities, 2, 4), selected);
 
-            selected = db.select(fb -> fb.longPrim().isLessThanOrEqualTo(5L), conn);
+            selected = db.select(sb -> sb.filter(f -> f.longPrim().isLessThanOrEqualTo(5L)), conn);
             assertEntities(listWith(entities, 0, 2, 3, 4, 9, 10), selected);
 
-            selected = db.select(fb -> fb.longPrim().isLessThan(5L), conn);
+            selected = db.select(sb -> sb.filter(f -> f.longPrim().isLessThan(5L)), conn);
             assertEntities(listWith(entities, 0, 2, 4, 9, 10), selected);
 
-            selected = db.select(fb -> fb.longPrim().isGreaterThanOrEqualTo(100L), conn);
+            selected = db.select(sb -> sb.filter(f -> f.longPrim().isGreaterThanOrEqualTo(100L)), conn);
             assertEntities(listWith(entities, 5, 6, 11), selected);
 
-            selected = db.select(fb -> fb.longPrim().isGreaterThan(100L), conn);
+            selected = db.select(sb -> sb.filter(f -> f.longPrim().isGreaterThan(100L)), conn);
             assertEntities(listWith(entities, 6), selected);
 
-            selected = db.select(fb -> fb.longPrim().isNotEqualTo(2L), conn);
+            selected = db.select(sb -> sb.filter(f -> f.longPrim().isNotEqualTo(2L)), conn);
             assertEntities(listWithout(entities, 2, 4), selected);
 
-            selected = db.select(fb -> fb.longPrim().isIn(List.of(1L, 3L, 5L, 7L, 9L)), conn);
+            selected = db.select(sb -> sb.filter(f -> f.longPrim().isIn(List.of(1L, 3L, 5L, 7L, 9L))), conn);
             assertEntities(listWith(entities, 0, 3), selected);
 
-            selected = db.select(fb -> fb.longPrim().isNotIn(List.of(10L, 100L, 1000L)), conn);
+            selected = db.select(sb -> sb.filter(f -> f.longPrim().isNotIn(List.of(10L, 100L, 1000L))), conn);
             assertEntities(listWithout(entities, 1, 5, 6, 11), selected);
 
-            selected =
-                    db.select(fb -> fb.longPrim().isEqualTo(10L).or().longPrim().isEqualTo(-10L), conn);
+            selected = db.select(
+                    sb -> sb.filter(
+                            f -> f.longPrim().isEqualTo(10L).or().longPrim().isEqualTo(-10L)),
+                    conn);
             assertEntities(listWith(entities, 1, 9), selected);
         }
     }
@@ -300,31 +307,34 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(entities, conn);
 
-            var selected = db.select(fb -> fb.intPrim().isEqualTo(2), conn);
+            var selected = db.select(sb -> sb.filter(f -> f.intPrim().isEqualTo(2)), conn);
             assertEntities(listWith(entities, 2, 4), selected);
 
-            selected = db.select(fb -> fb.intPrim().isLessThanOrEqualTo(5), conn);
+            selected = db.select(sb -> sb.filter(f -> f.intPrim().isLessThanOrEqualTo(5)), conn);
             assertEntities(listWith(entities, 0, 2, 3, 4, 9, 10), selected);
 
-            selected = db.select(fb -> fb.intPrim().isLessThan(5), conn);
+            selected = db.select(sb -> sb.filter(f -> f.intPrim().isLessThan(5)), conn);
             assertEntities(listWith(entities, 0, 2, 4, 9, 10), selected);
 
-            selected = db.select(fb -> fb.intPrim().isGreaterThanOrEqualTo(100), conn);
+            selected = db.select(sb -> sb.filter(f -> f.intPrim().isGreaterThanOrEqualTo(100)), conn);
             assertEntities(listWith(entities, 5, 6, 11), selected);
 
-            selected = db.select(fb -> fb.intPrim().isGreaterThan(100), conn);
+            selected = db.select(sb -> sb.filter(f -> f.intPrim().isGreaterThan(100)), conn);
             assertEntities(listWith(entities, 6), selected);
 
-            selected = db.select(fb -> fb.intPrim().isNotEqualTo(2), conn);
+            selected = db.select(sb -> sb.filter(f -> f.intPrim().isNotEqualTo(2)), conn);
             assertEntities(listWithout(entities, 2, 4), selected);
 
-            selected = db.select(fb -> fb.intPrim().isIn(List.of(1, 3, 5, 7, 9)), conn);
+            selected = db.select(sb -> sb.filter(f -> f.intPrim().isIn(List.of(1, 3, 5, 7, 9))), conn);
             assertEntities(listWith(entities, 0, 3), selected);
 
-            selected = db.select(fb -> fb.intPrim().isNotIn(List.of(10, 100, 1000)), conn);
+            selected = db.select(sb -> sb.filter(f -> f.intPrim().isNotIn(List.of(10, 100, 1000))), conn);
             assertEntities(listWithout(entities, 1, 5, 6, 11), selected);
 
-            selected = db.select(fb -> fb.intPrim().isEqualTo(10).or().intPrim().isEqualTo(-10), conn);
+            selected = db.select(
+                    sb -> sb.filter(
+                            f -> f.intPrim().isEqualTo(10).or().intPrim().isEqualTo(-10)),
+                    conn);
             assertEntities(listWith(entities, 1, 9), selected);
         }
     }
@@ -352,33 +362,38 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(entities, conn);
 
-            var selected = db.select(fb -> fb.shortPrim().isEqualTo((short) 2), conn);
+            var selected = db.select(sb -> sb.filter(f -> f.shortPrim().isEqualTo((short) 2)), conn);
             assertEntities(listWith(entities, 2, 4), selected);
 
-            selected = db.select(fb -> fb.shortPrim().isLessThanOrEqualTo((short) 5), conn);
+            selected = db.select(sb -> sb.filter(f -> f.shortPrim().isLessThanOrEqualTo((short) 5)), conn);
             assertEntities(listWith(entities, 0, 2, 3, 4, 9, 10), selected);
 
-            selected = db.select(fb -> fb.shortPrim().isLessThan((short) 5), conn);
+            selected = db.select(sb -> sb.filter(f -> f.shortPrim().isLessThan((short) 5)), conn);
             assertEntities(listWith(entities, 0, 2, 4, 9, 10), selected);
 
-            selected = db.select(fb -> fb.shortPrim().isGreaterThanOrEqualTo((short) 100), conn);
+            selected = db.select(sb -> sb.filter(f -> f.shortPrim().isGreaterThanOrEqualTo((short) 100)), conn);
             assertEntities(listWith(entities, 5, 6, 11), selected);
 
-            selected = db.select(fb -> fb.shortPrim().isGreaterThan((short) 100), conn);
+            selected = db.select(sb -> sb.filter(f -> f.shortPrim().isGreaterThan((short) 100)), conn);
             assertEntities(listWith(entities, 6), selected);
 
-            selected = db.select(fb -> fb.shortPrim().isNotEqualTo((short) 2), conn);
+            selected = db.select(sb -> sb.filter(f -> f.shortPrim().isNotEqualTo((short) 2)), conn);
             assertEntities(listWithout(entities, 2, 4), selected);
 
             selected = db.select(
-                    fb -> fb.shortPrim().isIn(List.of((short) 1, (short) 3, (short) 5, (short) 7, (short) 9)), conn);
+                    sb -> sb.filter(
+                            f -> f.shortPrim().isIn(List.of((short) 1, (short) 3, (short) 5, (short) 7, (short) 9))),
+                    conn);
             assertEntities(listWith(entities, 0, 3), selected);
 
-            selected = db.select(fb -> fb.shortPrim().isNotIn(List.of((short) 10, (short) 100, (short) 1000)), conn);
+            selected = db.select(
+                    sb -> sb.filter(f -> f.shortPrim().isNotIn(List.of((short) 10, (short) 100, (short) 1000))), conn);
             assertEntities(listWithout(entities, 1, 5, 6, 11), selected);
 
             selected = db.select(
-                    fb -> fb.shortPrim().isEqualTo((short) 10).or().shortPrim().isEqualTo((short) -10), conn);
+                    sb -> sb.filter(f ->
+                            f.shortPrim().isEqualTo((short) 10).or().shortPrim().isEqualTo((short) -10)),
+                    conn);
             assertEntities(listWith(entities, 1, 9), selected);
         }
     }
@@ -406,32 +421,34 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(entities, conn);
 
-            var selected = db.select(fb -> fb.doublePrim().isEqualTo(2), conn);
+            var selected = db.select(sb -> sb.filter(f -> f.doublePrim().isEqualTo(2)), conn);
             assertEntities(listWith(entities, 2), selected);
 
-            selected = db.select(fb -> fb.doublePrim().isLessThanOrEqualTo(5.6), conn);
+            selected = db.select(sb -> sb.filter(f -> f.doublePrim().isLessThanOrEqualTo(5.6)), conn);
             assertEntities(listWith(entities, 0, 2, 3, 4, 9, 10), selected);
 
-            selected = db.select(fb -> fb.doublePrim().isLessThan(5.6), conn);
+            selected = db.select(sb -> sb.filter(f -> f.doublePrim().isLessThan(5.6)), conn);
             assertEntities(listWith(entities, 0, 2, 4, 9, 10), selected);
 
-            selected = db.select(fb -> fb.doublePrim().isGreaterThanOrEqualTo(100.01), conn);
+            selected = db.select(sb -> sb.filter(f -> f.doublePrim().isGreaterThanOrEqualTo(100.01)), conn);
             assertEntities(listWith(entities, 5, 6), selected);
 
-            selected = db.select(fb -> fb.doublePrim().isGreaterThan(100.01), conn);
+            selected = db.select(sb -> sb.filter(f -> f.doublePrim().isGreaterThan(100.01)), conn);
             assertEntities(listWith(entities, 6), selected);
 
-            selected = db.select(fb -> fb.doublePrim().isNotEqualTo(2), conn);
+            selected = db.select(sb -> sb.filter(f -> f.doublePrim().isNotEqualTo(2)), conn);
             assertEntities(listWithout(entities, 2), selected);
 
-            selected = db.select(fb -> fb.doublePrim().isIn(List.of(1.5, 3.1, 5.6, 7.2, 9.3)), conn);
+            selected = db.select(sb -> sb.filter(f -> f.doublePrim().isIn(List.of(1.5, 3.1, 5.6, 7.2, 9.3))), conn);
             assertEntities(listWith(entities, 0, 3), selected);
 
-            selected = db.select(fb -> fb.doublePrim().isNotIn(List.of(10.1, 100.01, 1000.123)), conn);
+            selected = db.select(sb -> sb.filter(f -> f.doublePrim().isNotIn(List.of(10.1, 100.01, 1000.123))), conn);
             assertEntities(listWithout(entities, 1, 5, 6), selected);
 
             selected = db.select(
-                    fb -> fb.doublePrim().isEqualTo(10.1).or().doublePrim().isEqualTo(-10.1), conn);
+                    sb -> sb.filter(f ->
+                            f.doublePrim().isEqualTo(10.1).or().doublePrim().isEqualTo(-10.1)),
+                    conn);
             assertEntities(listWith(entities, 1, 9), selected);
         }
     }
@@ -462,22 +479,22 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(entities, conn);
 
-            var selected = db.select(fb -> fb.uuid().isEqualTo(uuid2), conn);
+            var selected = db.select(sb -> sb.filter(f -> f.uuid().isEqualTo(uuid2)), conn);
             assertEntities(listWith(entities, 1, 6), selected);
 
-            selected = db.select(fb -> fb.uuid().isNotEqualTo(uuid1), conn);
+            selected = db.select(sb -> sb.filter(f -> f.uuid().isNotEqualTo(uuid1)), conn);
             assertEntities(listWithout(entities, 0, 2, 4, 8), selected);
 
-            selected = db.select(fb -> fb.uuid().isNull(), conn);
+            selected = db.select(sb -> sb.filter(f -> f.uuid().isNull()), conn);
             assertEntities(listWith(entities, 8), selected);
 
-            selected = db.select(fb -> fb.uuid().isNotNull(), conn);
+            selected = db.select(sb -> sb.filter(f -> f.uuid().isNotNull()), conn);
             assertEntities(listWithout(entities, 8), selected);
 
-            selected = db.select(fb -> fb.uuid().isIn(List.of(uuid3, uuid4)), conn);
+            selected = db.select(sb -> sb.filter(f -> f.uuid().isIn(List.of(uuid3, uuid4))), conn);
             assertEntities(listWith(entities, 3, 5), selected);
 
-            selected = db.select(fb -> fb.uuid().isNotIn(List.of(uuid3, uuid4)), conn);
+            selected = db.select(sb -> sb.filter(f -> f.uuid().isNotIn(List.of(uuid3, uuid4))), conn);
             assertEntities(listWithout(entities, 3, 5, 8), selected);
         }
     }
@@ -508,36 +525,38 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(entities, conn);
 
-            var selected = db.select(fb -> fb.localDateTime().isEqualTo(time2), conn);
+            var selected = db.select(sb -> sb.filter(f -> f.localDateTime().isEqualTo(time2)), conn);
             assertEntities(listWith(entities, 1, 6), selected);
 
-            selected = db.select(fb -> fb.localDateTime().isNotEqualTo(time2), conn);
+            selected = db.select(sb -> sb.filter(f -> f.localDateTime().isNotEqualTo(time2)), conn);
             assertEntities(listWithout(entities, 1, 6, 8), selected);
 
-            selected = db.select(fb -> fb.localDateTime().isGreaterThan(time4), conn);
+            selected = db.select(sb -> sb.filter(f -> f.localDateTime().isGreaterThan(time4)), conn);
             assertEntities(listWith(entities, 0, 1, 2, 4, 6), selected);
 
-            selected = db.select(fb -> fb.localDateTime().isGreaterThanOrEqualTo(time4), conn);
+            selected = db.select(sb -> sb.filter(f -> f.localDateTime().isGreaterThanOrEqualTo(time4)), conn);
             assertEntities(listWith(entities, 0, 1, 2, 4, 5, 6), selected);
 
-            selected = db.select(fb -> fb.localDateTime().isLessThan(time4), conn);
+            selected = db.select(sb -> sb.filter(f -> f.localDateTime().isLessThan(time4)), conn);
             assertEntities(listWith(entities, 3, 7), selected);
 
-            selected = db.select(fb -> fb.localDateTime().isLessThanOrEqualTo(time4), conn);
+            selected = db.select(sb -> sb.filter(f -> f.localDateTime().isLessThanOrEqualTo(time4)), conn);
             assertEntities(listWith(entities, 3, 5, 7), selected);
 
-            selected = db.select(fb -> fb.localDateTime().isNull(), conn);
+            selected = db.select(sb -> sb.filter(f -> f.localDateTime().isNull()), conn);
             assertEntities(listWith(entities, 8), selected);
 
-            selected = db.select(fb -> fb.localDateTime().isNotNull(), conn);
+            selected = db.select(sb -> sb.filter(f -> f.localDateTime().isNotNull()), conn);
             assertEntities(listWithout(entities, 8), selected);
 
-            selected =
-                    db.select(fb -> fb.localDateTime().isIn(List.of(time1, time5, TestUtil.nowLocalDateTime())), conn);
+            selected = db.select(
+                    sb -> sb.filter(f -> f.localDateTime().isIn(List.of(time1, time5, TestUtil.nowLocalDateTime()))),
+                    conn);
             assertEntities(listWith(entities, 0, 2, 4, 7), selected);
 
             selected = db.select(
-                    fb -> fb.localDateTime().isNotIn(List.of(time1, time5, TestUtil.nowLocalDateTime())), conn);
+                    sb -> sb.filter(f -> f.localDateTime().isNotIn(List.of(time1, time5, TestUtil.nowLocalDateTime()))),
+                    conn);
             assertEntities(listWithout(entities, 0, 2, 4, 7, 8), selected);
         }
     }
@@ -610,34 +629,36 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(entities, conn);
 
-            var selected =
-                    db.select(fb -> fb.uuid().isEqualTo(uuid1).and().string().isEqualTo("two"), conn);
+            var selected = db.select(
+                    sb -> sb.filter(
+                            f -> f.uuid().isEqualTo(uuid1).and().string().isEqualTo("two")),
+                    conn);
             assertEntities(listWith(entities, 2, 4), selected);
 
             selected = db.select(
-                    fb -> fb.localDateTime()
+                    sb -> sb.filter(f -> f.localDateTime()
                             .isNull()
                             .and()
                             .group(gb ->
-                                    gb.intPrim().isGreaterThan(1).or().string().isEqualTo("four")),
+                                    gb.intPrim().isGreaterThan(1).or().string().isEqualTo("four"))),
                     conn);
             assertEntities(listWith(entities, 6), selected);
 
             selected = db.select(
-                    fb -> fb.group(gb ->
+                    sb -> sb.filter(f -> f.group(gb ->
                                     gb.intPrim().isGreaterThan(2).and().uuid().isNotIn(List.of(uuid3, uuid1)))
                             .or()
                             .localDateTime()
-                            .isLessThan(TestUtil.nowLocalDateTime().minusHours(13)),
+                            .isLessThan(TestUtil.nowLocalDateTime().minusHours(13))),
                     conn);
             assertEntities(listWith(entities, 1, 6, 7), selected);
 
             selected = db.select(
-                    fb -> fb.notGroup(gb ->
+                    sb -> sb.filter(f -> f.notGroup(gb ->
                                     gb.string().isEqualTo("two").or().intPrim().isEqualTo(2))
                             .and()
                             .localDateTime()
-                            .isGreaterThan(time2),
+                            .isGreaterThan(time2)),
                     conn);
             assertEntities(listWith(entities, 8), selected);
         }
@@ -721,13 +742,14 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(entities, conn);
 
-            var selected = db.select(fb -> fb.exampleEnum().isEqualTo(ExampleEnum.ONE), conn);
+            var selected = db.select(sb -> sb.filter(f -> f.exampleEnum().isEqualTo(ExampleEnum.ONE)), conn);
             assertEntities(listWith(entities, 1), selected);
 
-            selected = db.select(fb -> fb.exampleEnum().isNotEqualTo(ExampleEnum.THREE), conn);
+            selected = db.select(sb -> sb.filter(f -> f.exampleEnum().isNotEqualTo(ExampleEnum.THREE)), conn);
             assertEntities(listWithout(entities, 0, 4, 5, 6), selected);
 
-            selected = db.select(fb -> fb.exampleEnum().isIn(List.of(ExampleEnum.TWO, ExampleEnum.THREE)), conn);
+            selected = db.select(
+                    sb -> sb.filter(f -> f.exampleEnum().isIn(List.of(ExampleEnum.TWO, ExampleEnum.THREE))), conn);
             assertEntities(listWith(entities, 0, 2, 3, 4, 5), selected);
         }
     }
@@ -750,7 +772,7 @@ public class GetterSetterAllTypesEntityDbTest
 
             db.insert(entities, conn);
 
-            var selected = db.selectAll(sb -> sb.exampleEnumAsc(), conn);
+            var selected = db.select(sb -> sb.sort(s -> s.exampleEnumAsc()), conn);
             assertEntities(
                     List.of(
                             entities.get(6),

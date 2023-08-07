@@ -67,18 +67,18 @@ public class QuotedEntityDbTest
 
             db.insert(originals, conn);
 
-            var results = db.selectAll(sb -> sb.longIdAsc(), conn);
+            var results = db.select(sb -> sb.sort(s -> s.longIdAsc()), conn);
             assertEntities(originals, results);
 
-            results = db.selectAll(sb -> sb.stringDesc(), conn);
+            results = db.select(sb -> sb.sort(s -> s.stringDesc()), conn);
             assertEntities(originals, results);
 
             Collections.reverse(originals);
 
-            results = db.selectAll(sb -> sb.longIdDesc(), conn);
+            results = db.select(sb -> sb.sort(s -> s.longIdDesc()), conn);
             assertEntities(originals, results);
 
-            results = db.selectAll(sb -> sb.stringAsc(), conn);
+            results = db.select(sb -> sb.sort(s -> s.stringAsc()), conn);
             assertEntities(originals, results);
         }
     }

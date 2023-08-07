@@ -29,26 +29,14 @@ public interface JdbcGenDb<E, I, P extends BasePatch, F, S> {
 
     /**
      * Selects all of the entities that match the specified filter. If there are none, then an empty list is returned.
-     * The results are not explicitly ordered.
-     *
-     * @param filterBuilder construct a filter to constrain the results
-     * @param conn the JDBC connection
-     * @return a list of entities or an empty list
-     * @throws SQLException
-     */
-    List<E> select(Consumer<F> filterBuilder, Connection conn) throws SQLException;
-
-    /**
-     * Selects all of the entities that match the specified filter. If there are none, then an empty list is returned.
      * The results are ordered as specified.
      *
-     * @param filterBuilder construct a filter to constrain the results
-     * @param sortBuilder specify the columns to sort on
+     * @param selectBuilder customize the select query
      * @param conn the JDBC connection
      * @return a list of entities or an empty list
      * @throws SQLException
      */
-    List<E> select(Consumer<F> filterBuilder, Consumer<S> sortBuilder, Connection conn) throws SQLException;
+    List<E> select(Consumer<SelectBuilder<F, S>> selectBuilder, Connection conn) throws SQLException;
 
     /**
      * Selects all of the entities. If there are none, then an empty list is returned. The results are not explicitly
@@ -59,17 +47,6 @@ public interface JdbcGenDb<E, I, P extends BasePatch, F, S> {
      * @throws SQLException
      */
     List<E> selectAll(Connection conn) throws SQLException;
-
-    /**
-     * Selects all of the entities. If there are none, then an empty list is returned. The results are ordered as
-     * specified.
-     *
-     * @param sortBuilder specify the columns to sort on
-     * @param conn the JDBC connection
-     * @return an ordered list of entities or an empty list
-     * @throws SQLException
-     */
-    List<E> selectAll(Consumer<S> sortBuilder, Connection conn) throws SQLException;
 
     /**
      * Counts the number of entities.
