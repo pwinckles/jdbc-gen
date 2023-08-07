@@ -751,6 +751,24 @@ public class GetterSetterAllTypesEntityDbTest
             selected = db.select(
                     sb -> sb.filter(f -> f.exampleEnum().isIn(List.of(ExampleEnum.TWO, ExampleEnum.THREE))), conn);
             assertEntities(listWith(entities, 0, 2, 3, 4, 5), selected);
+
+            selected = db.select(sb -> sb.filter(f -> f.exampleEnum().isNull()), conn);
+            assertEntities(listWith(entities, 6), selected);
+
+            selected = db.select(sb -> sb.filter(f -> f.exampleEnum().isNotNull()), conn);
+            assertEntities(listWithout(entities, 6), selected);
+
+            selected = db.select(sb -> sb.filter(f -> f.exampleEnum().isGreaterThan(ExampleEnum.ONE)), conn);
+            assertEntities(listWithout(entities, 1, 6), selected);
+
+            selected = db.select(sb -> sb.filter(f -> f.exampleEnum().isGreaterThanOrEqualTo(ExampleEnum.THREE)), conn);
+            assertEntities(listWithout(entities, 1, 6), selected);
+
+            selected = db.select(sb -> sb.filter(f -> f.exampleEnum().isLessThan(ExampleEnum.THREE)), conn);
+            assertEntities(listWith(entities, 1), selected);
+
+            selected = db.select(sb -> sb.filter(f -> f.exampleEnum().isLessThanOrEqualTo(ExampleEnum.THREE)), conn);
+            assertEntities(listWith(entities, 0, 1, 4, 5), selected);
         }
     }
 

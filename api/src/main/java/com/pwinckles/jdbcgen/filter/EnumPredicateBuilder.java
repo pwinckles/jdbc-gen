@@ -51,6 +51,54 @@ public class EnumPredicateBuilder<B, T extends Enum<T>> {
     }
 
     /**
+     * Adds a predicate that matches values that are greater than the specified value
+     *
+     * @param value the value to compare
+     * @return conjunction builder
+     */
+    public ConjunctionBuilder<B> isGreaterThan(T value) {
+        Objects.requireNonNull(value, "value cannot be null");
+        filter.add(new Predicate(field, Operation.GREATER_THAN, value.name()));
+        return helper.conjunctionBuilder();
+    }
+
+    /**
+     * Adds a predicate that matches values that are greater than or equal to the specified value
+     *
+     * @param value the value to compare
+     * @return conjunction builder
+     */
+    public ConjunctionBuilder<B> isGreaterThanOrEqualTo(T value) {
+        Objects.requireNonNull(value, "value cannot be null");
+        filter.add(new Predicate(field, Operation.GREATER_THAN_OR_EQUAL, value.name()));
+        return helper.conjunctionBuilder();
+    }
+
+    /**
+     * Adds a predicate that matches values that are less than the specified value
+     *
+     * @param value the value to compare
+     * @return conjunction builder
+     */
+    public ConjunctionBuilder<B> isLessThan(T value) {
+        Objects.requireNonNull(value, "value cannot be null");
+        filter.add(new Predicate(field, Operation.LESS_THAN, value.name()));
+        return helper.conjunctionBuilder();
+    }
+
+    /**
+     * Adds a predicate that matches values that are less than or equal to the specified value
+     *
+     * @param value the value to compare
+     * @return conjunction builder
+     */
+    public ConjunctionBuilder<B> isLessThanOrEqualTo(T value) {
+        Objects.requireNonNull(value, "value cannot be null");
+        filter.add(new Predicate(field, Operation.LESS_THAN_OR_EQUAL, value.name()));
+        return helper.conjunctionBuilder();
+    }
+
+    /**
      * Adds a predicate that matches values that are null.
      *
      * @return conjunction builder
