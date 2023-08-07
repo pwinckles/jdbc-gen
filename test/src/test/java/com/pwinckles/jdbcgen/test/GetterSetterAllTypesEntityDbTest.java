@@ -786,6 +786,122 @@ public class GetterSetterAllTypesEntityDbTest
         }
     }
 
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void paginate(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var entities = List.of(
+                    newEntityWithId().setString("a"), // 0
+                    newEntityWithId().setString("example"), // 1
+                    newEntityWithId().setString("test-1"), // 2
+                    newEntityWithId().setString("TEST-1"), // 3
+                    newEntityWithId().setString("TEST-1"), // 4
+                    newEntityWithId().setString("m"), // 5
+                    newEntityWithId().setString("test-2"), // 6
+                    newEntityWithId().setString("z"), // 7
+                    newEntityWithId().setString("w"), // 8
+                    newEntityWithId().setString("test-3"), // 9
+                    newEntityWithId().setString(null) // 10
+                    );
+
+            db.insert(entities, conn);
+
+            var selected = db.select(sb -> sb.paginate(0, 3), conn);
+            assertEntities(listWith(entities, 0, 1, 2), selected);
+
+            selected = db.select(sb -> sb.paginate(1, 3), conn);
+            assertEntities(listWith(entities, 3, 4, 5), selected);
+
+            selected = db.select(sb -> sb.paginate(2, 3), conn);
+            assertEntities(listWith(entities, 6, 7, 8), selected);
+
+            selected = db.select(sb -> sb.paginate(3, 3), conn);
+            assertEntities(listWith(entities, 9, 10), selected);
+
+            selected = db.select(sb -> sb.paginate(4, 3), conn);
+            assertThat(selected).isEmpty();
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void sortedPaginated(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var entities = List.of(
+                    newEntityWithId().setString("a"), // 0
+                    newEntityWithId().setString("example"), // 1
+                    newEntityWithId().setString("test-1"), // 2
+                    newEntityWithId().setString("TEST-1"), // 3
+                    newEntityWithId().setString("TEST-1"), // 4
+                    newEntityWithId().setString("m"), // 5
+                    newEntityWithId().setString("test-2"), // 6
+                    newEntityWithId().setString("z"), // 7
+                    newEntityWithId().setString("w"), // 8
+                    newEntityWithId().setString("test-3"), // 9
+                    newEntityWithId().setString(null) // 10
+                    );
+
+            db.insert(entities, conn);
+
+            var selected = db.select(sb -> sb.sort(s -> s.longIdDesc()).paginate(0, 3), conn);
+            assertEntities(listWith(entities, 10, 9, 8), selected);
+
+            selected = db.select(sb -> sb.sort(s -> s.longIdDesc()).paginate(1, 3), conn);
+            assertEntities(listWith(entities, 7, 6, 5), selected);
+
+            selected = db.select(sb -> sb.sort(s -> s.longIdDesc()).paginate(2, 3), conn);
+            assertEntities(listWith(entities, 4, 3, 2), selected);
+
+            selected = db.select(sb -> sb.sort(s -> s.longIdDesc()).paginate(3, 3), conn);
+            assertEntities(listWith(entities, 1, 0), selected);
+
+            selected = db.select(sb -> sb.sort(s -> s.longIdDesc()).paginate(4, 3), conn);
+            assertThat(selected).isEmpty();
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dbs")
+    public void filteredSortedPaginated(Connection conn) throws SQLException {
+        try (conn) {
+            createTable(conn);
+
+            var entities = List.of(
+                    newEntityWithId().setString("a"), // 0
+                    newEntityWithId().setString("example"), // 1
+                    newEntityWithId().setString("test-1"), // 2
+                    newEntityWithId().setString("TEST-1"), // 3
+                    newEntityWithId().setString("TEST-1"), // 4
+                    newEntityWithId().setString("m"), // 5
+                    newEntityWithId().setString("test-2"), // 6
+                    newEntityWithId().setString("z"), // 7
+                    newEntityWithId().setString("w"), // 8
+                    newEntityWithId().setString("test-3"), // 9
+                    newEntityWithId().setString(null) // 10
+                    );
+
+            db.insert(entities, conn);
+
+            var selected = db.select(
+                    sb -> sb.filter(f -> f.string().isLikeInsensitive("test-%"))
+                            .sort(s -> s.longIdDesc())
+                            .paginate(0, 3),
+                    conn);
+            assertEntities(listWith(entities, 9, 6, 4), selected);
+
+            selected = db.select(
+                    sb -> sb.filter(f -> f.string().isLikeInsensitive("test-%"))
+                            .sort(s -> s.longIdDesc())
+                            .paginate(1, 3),
+                    conn);
+            assertEntities(listWith(entities, 3, 2), selected);
+        }
+    }
+
     @Override
     protected Long getId(GetterSetterAllTypesEntity entity) {
         return entity.getLongId();

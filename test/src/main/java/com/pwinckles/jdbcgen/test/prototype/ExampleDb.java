@@ -92,12 +92,15 @@ public class ExampleDb implements JdbcGenDb<Example, Long, ExampleDb.Patch, Exam
 
         var filter = new Filter();
         var sort = new Sort();
+        var paginate = new SelectBuilder.Paginate();
 
-        selectBuilder.accept(new SelectBuilder<>(new ExampleFilterBuilder(filter), new ExampleSortBuilder(sort)));
+        selectBuilder.accept(
+                new SelectBuilder<>(new ExampleFilterBuilder(filter), new ExampleSortBuilder(sort), paginate));
 
         var queryBuilder = new StringBuilder("SELECT id, name, count, timestamp, enum FROM example");
         filter.buildQuery(queryBuilder);
         sort.buildQuery(queryBuilder);
+        paginate.buildQuery(queryBuilder);
 
         try (var stmt = conn.prepareStatement(queryBuilder.toString())) {
             filter.addArguments(1, stmt);
